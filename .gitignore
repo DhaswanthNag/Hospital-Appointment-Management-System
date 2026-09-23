@@ -1,0 +1,84 @@
+# ==============================
+# Java / Spring Boot
+# ==============================
+
+# Maven build output
+backend/target/
+
+# Java compiled files
+*.class
+
+# Logs
+*.log
+
+# Local configuration / secrets
+backend/src/main/resources/application-local.properties
+
+
+# ==============================
+# Environment files
+# ==============================
+
+.env
+.env.*
+!.env.example
+
+
+# ==============================
+# React / Node.js
+# ==============================
+
+# Node dependencies
+node_modules/
+frontend/node_modules/
+
+# React production build
+frontend/build/
+
+# Vite build output, if ever used
+frontend/dist/
+
+# npm / yarn / pnpm logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+
+# ==============================
+# IDE / Editor
+# ==============================
+
+.idea/
+*.iml
+
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+
+
+# ==============================
+# GitHub / Generated Files
+# ==============================
+
+# Ignore generated Java modernization logs
+backend/.github/modernize/java-upgrade/*/logs/
+
+
+# ==============================
+# Operating System
+# ==============================
+
+.DS_Store
+Thumbs.db
+desktop.ini
+
+
+# ==============================
+# Temporary files
+# ==============================
+
+*.tmp
+*.temp
+*.swp
+*.swo
