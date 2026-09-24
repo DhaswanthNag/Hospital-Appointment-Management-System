@@ -22,6 +22,10 @@ public interface AppointmentService {
 
     // Get appointments by doctor ID and status
     List<AppointmentResponse> getAppointmentsByDoctorIdAndStatus(String doctorId, String status);
+    
+//this//
+    List<AppointmentResponse> getAppointmentsByPatientId(String patientId);
+//this//
 
     // Get available time slots for a doctor
     List<String> getAvailableSlots(String doctorId, String date);

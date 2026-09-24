@@ -162,6 +162,14 @@ public class AppointmentServiceImpl implements AppointmentService {
                 .map(this::convert)
                 .collect(Collectors.toList());
     }
+//this//
+    @Override
+    public List<AppointmentResponse> getAppointmentsByPatientId(String patientId) {
+        return repo.findByPatientId(patientId).stream()
+                .map(this::convert)
+                .collect(Collectors.toList());
+    }
+//this//
 
     @Override
     public List<AppointmentResponse> getAppointmentsByDoctorIdAndStatus(String doctorId, String status) {

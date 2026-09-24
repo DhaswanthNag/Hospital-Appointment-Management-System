@@ -56,7 +56,15 @@ public class AppointmentController {
             @PathVariable String date) {
         return ResponseEntity.ok(service.getAvailableSlots(doctorId, date));
     }
-    
+
+    //this//
+    @GetMapping("/patient/{patientId}")
+    public ResponseEntity<List<AppointmentResponse>> getAppointmentsByPatient(
+            @PathVariable String patientId) {
+        return ResponseEntity.ok(service.getAppointmentsByPatientId(patientId));
+    }
+    //this//
+
     // Get appointments by status for a doctor
     @GetMapping("/doctor/{doctorId}/status/{status}")
     public ResponseEntity<List<AppointmentResponse>> getAppointmentsByDoctorAndStatus(

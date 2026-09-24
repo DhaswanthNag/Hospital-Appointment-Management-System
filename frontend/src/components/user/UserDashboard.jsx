@@ -1,468 +1,1036 @@
-import React, { useState } from 'react';
-import UserSidebar from '../../sidebar/UserSidebar';
+import React, { useState, useEffect, useContext, useCallback } from "react";
+import UserSidebar from "../../sidebar/UserSidebar";
+// import PropTypes from "prop-types";
+import { AuthContext } from "../../context/AuthContext";
+// import { API_BASE_URL } from "../../config";
+import api from "../../api/api";
+import {
+  Calendar,
+  Clock,
+  User,
+  Bell,
+  FileText,
+  FlaskConical,
+  //CreditCard,
+  History,
+  Stethoscope,
+ // X,
+ // CheckCircle
+} from "lucide-react";
+
+// const API_BASE = API_BASE_URL || "http://localhost:8080/api";
 
 const UserDashboard = () => {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [activeModule, setActiveModule] = useState('dashboard');
+  const { user } = useContext(AuthContext);
 
-  // Sample data
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [activeModule, setActiveModule] = useState("dashboard");
+
+  const [patient, setPatient] = useState(null);
+  const [appointments, setAppointments] = useState([]);
+  const [appointmentLoading, setAppointmentLoading] = useState(false);
+  const [appointmentError, setAppointmentError] = useState(null);
+
+  // Existing dashboard data
   const upcomingAppointments = [
     {
-      doctor: 'Dr. Sarah Johnson',
-      specialty: 'Cardiology',
-      date: '2025-11-28',
-      time: '10:00 AM',
-      room: 'Room 20, Building A'
+      id: 1,
+      doctor: "Dr. Sarah Johnson",
+      department: "Cardiology",
+      date: "2024-03-20",
+      time: "10:00 AM",
+      type: "Consultation",
+      status: "Confirmed"
     },
     {
-      doctor: 'Dr. Michael Chen',
-      specialty: 'General Director',
-      date: '2025-10-05',
-      time: '2:50 PM',
-      room: 'Room 205, Building B'
-    },
-    {
-      doctor: 'Dr. Emily Rodriguez',
-      specialty: 'Dermatology',
-      date: '2025-10-12',
-      time: '1:00 AM',
-      room: 'Room 105, Building C'
+      id: 2,
+      doctor: "Dr. Michael Chen",
+      department: "Neurology",
+      date: "2024-03-22",
+      time: "02:30 PM",
+      type: "Follow-up",
+      status: "Pending"
     }
   ];
 
   const prescriptions = [
     {
-      name: 'Lisitor',
-      doctor: 'Dr. Sarah Johnson',
-      dosage: '10mg',
-      frequency: 'Once daily',
-      validUntil: '2026-11-01'
+      id: 1,
+      medicine: "Amlodipine",
+      dosage: "5mg",
+      frequency: "Once daily",
+      doctor: "Dr. Sarah Johnson",
+      date: "2024-03-10"
     },
     {
-      name: 'Metformin',
-      doctor: 'Dr. Michael Chen',
-      dosage: '500mg',
-      frequency: 'Once daily',
-      validUntil: '2026-10-15'
-    },
-    {
-      name: 'Atorvastatin',
-      doctor: 'Dr. Sarah Johnson',
-      dosage: '20mg',
-      frequency: 'Once daily',
-      validUntil: '2026-09-20'
+      id: 2,
+      medicine: "Metformin",
+      dosage: "500mg",
+      frequency: "Twice daily",
+      doctor: "Dr. Michael Chen",
+      date: "2024-03-05"
     }
   ];
 
   const labResults = [
     {
-      testName: 'Complete Blood Count (CBC)',
-      date: '2025-11-15',
-      parameters: [
-        { parameter: 'WBC', result: '7.2 K/uL', normalRange: '4.5-10', status: '↓' },
-        { parameter: 'RBC', result: '4.8 M/uL', normalRange: '4.5-5.5', status: '↓' },
-        { parameter: 'Hemoglobin', result: '14.5 g/dL', normalRange: '13.5-17.3', status: '↓' }
-      ]
+      id: 1,
+      test: "Complete Blood Count",
+      date: "2024-03-15",
+      status: "Available",
+      doctor: "Dr. Sarah Johnson"
     },
     {
-      testName: 'Comprehensive Metabolic Panel',
-      date: '2025-11-10',
-      parameters: [
-        { parameter: 'Glucose', result: '105 mg/dL', normalRange: '70-100', status: '↑' },
-        { parameter: 'Creatinine', result: '0.9 mg/dL', normalRange: '0.7-1.3', status: '↓' },
-        { parameter: 'BUN', result: '18 mg/dL', normalRange: '7-20', status: '↓' }
-      ]
+      id: 2,
+      test: "Lipid Profile",
+      date: "2024-03-12",
+      status: "Available",
+      doctor: "Dr. Michael Chen"
     }
   ];
 
   const visitHistory = [
     {
-      doctor: 'Dr. Sarah Johnson',
-      specialty: 'Cardiology',
-      date: '2025-11-20 at 10:30 AM',
-      diagnosis: 'Hypertension - Stable',
-      notes: 'Blood pressure was controlled. Continue current medication. Follow-up in 3 months.',
-      prescription: 'Lisitor 10mg'
+      id: 1,
+      doctor: "Dr. Sarah Johnson",
+      department: "Cardiology",
+      date: "2024-03-10",
+      diagnosis: "Hypertension",
+      status: "Completed"
     },
     {
-      doctor: 'Dr. Michael Chen',
-      specialty: 'General Physician',
-      date: '2025-10-15 at 2:00 PM',
-      diagnosis: 'Type 2 Diabetes - Controlled',
-      notes: 'Glucose levels within acceptable range. Patient advised on diet and exercise. Continue monitoring.',
-      prescription: 'Metformin 500mg'
+      id: 2,
+      doctor: "Dr. Michael Chen",
+      department: "Neurology",
+      date: "2024-03-05",
+      diagnosis: "Migraine",
+      status: "Completed"
     }
   ];
 
-  const billingData = {
-    totalPaid: 700.00,
-    pending: 180.00,
-    questioned: 65.00,
-    invoices: [
-      { id: 'INV-2025-1001', description: 'General Checking' },
-      { id: 'INV-2025-1002', description: 'Cardiology Consultation' },
-      { id: 'INV-2025-1003', description: 'Lab Tests' },
-      { id: 'INV-2025-1004', description: 'Follow-up Consultation' }
-    ]
+  const billingData = [
+    {
+      id: 1,
+      description: "Consultation - Cardiology",
+      amount: "$150",
+      date: "2024-03-10",
+      status: "Paid"
+    },
+    {
+      id: 2,
+      description: "Laboratory Tests",
+      amount: "$85",
+      date: "2024-03-12",
+      status: "Paid"
+    }
+  ];
+
+  // Step 1: resolve the logged-in patient's real patientId (PAT00x) from email
+  useEffect(() => {
+    const getLoggedInUser = () => {
+      // First use AuthContext user if available
+      if (user?.email) {
+        return user;
+      }
+
+      // Fallback to the user stored by Login.jsx
+      try {
+        const savedHamsUser = localStorage.getItem("hams_user");
+
+        if (savedHamsUser) {
+          return JSON.parse(savedHamsUser);
+        }
+      } catch (error) {
+        console.error("Failed to read hams_user from localStorage:", error);
+      }
+
+      // Fallback to the old "user" storage key
+      try {
+        const savedUser = localStorage.getItem("user");
+
+        if (savedUser) {
+          return JSON.parse(savedUser);
+        }
+      } catch (error) {
+        console.error("Failed to read user from localStorage:", error);
+      }
+
+      return null;
+    };
+
+    const loggedInUser = getLoggedInUser();
+
+    console.log("UserDashboard - Logged in user:", loggedInUser);
+
+    if (!loggedInUser?.email) {
+      console.log("UserDashboard - No logged-in user email found.");
+      setAppointmentError("Could not identify the logged-in patient.");
+      return;
+    }
+
+    api
+      .get("/api/patients")
+      .then((response) => {
+        const patients = Array.isArray(response.data)
+          ? response.data
+          : [];
+
+        console.log("UserDashboard - Patients from backend:", patients);
+
+        const loggedInEmail = loggedInUser.email.trim().toLowerCase();
+
+        const match = patients.find(
+          (p) =>
+            p.email &&
+            p.email.trim().toLowerCase() === loggedInEmail
+        );
+
+        console.log("UserDashboard - Matched patient:", match);
+
+        if (match) {
+          setPatient(match);
+          setAppointmentError(null);
+        } else {
+          console.log(
+            "UserDashboard - No patient matched email:",
+            loggedInEmail
+          );
+
+          setAppointmentError(
+            "No patient record found for this account."
+          );
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to load patients:", err);
+        setAppointmentError("Could not verify patient identity.");
+      });
+  }, [user]);
+
+  // Step 2: fetch this patient's real appointments
+  const fetchPatientAppointments = useCallback(async () => {
+    // Support both possible backend patient ID field names
+    const patientId = patient?.patientId || patient?.id;
+
+    if (!patientId) {
+      console.log(
+        "UserDashboard - Patient ID not available yet:",
+        patient
+      );
+      return;
+    }
+
+    setAppointmentLoading(true);
+
+    try {
+      console.log(
+        "UserDashboard - Fetching appointments for patient:",
+        patientId
+      );
+
+      const response = await api.get(
+        `/api/appointments/patient/${patientId}`
+      );
+
+      const data = response.data;
+
+      console.log(
+        "UserDashboard - Appointments received:",
+        data
+      );
+
+      setAppointments(Array.isArray(data) ? data : []);
+      setAppointmentError(null);
+    } catch (error) {
+      console.error("Failed to load patient appointments:", error);
+      console.error(
+        "UserDashboard - Appointment API response:",
+        error?.response?.data
+      );
+
+      setAppointments([]);
+      setAppointmentError("Could not load your appointments.");
+    } finally {
+      setAppointmentLoading(false);
+    }
+  }, [patient]);
+
+  useEffect(() => {
+    fetchPatientAppointments();
+  }, [fetchPatientAppointments]);
+
+  // Step 3: poll every 5 seconds so new admin appointments appear automatically
+  useEffect(() => {
+    const patientId = patient?.patientId || patient?.id;
+
+    if (!patientId) return;
+
+    const interval = setInterval(() => {
+      fetchPatientAppointments();
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [patient, fetchPatientAppointments]);
+
+  // Real appointments that are currently pending
+  const pendingAppointments = appointments.filter(
+    (appointment) =>
+      appointment.status?.toLowerCase() === "pending"
+  );
+
+  // Real appointments that are not cancelled
+  const activeAppointments = appointments.filter(
+    (appointment) =>
+      appointment.status?.toLowerCase() !== "cancelled"
+  );
+
+  const formatAppointmentDate = (dateString) => {
+    if (!dateString) return "";
+
+    const date = new Date(`${dateString}T00:00:00`);
+
+    return date.toLocaleDateString("en-US", {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+      year: "numeric"
+    });
   };
 
-  const renderDashboard = () => (
-    <div className="space-y-6">
-      <div className="bg-white rounded-lg shadow-sm p-6">
-        <h1 className="text-2xl font-bold text-gray-800 mb-4">Welcome to Your Health Portal</h1>
-        <p className="text-gray-600 mb-6">Manage your appointments, view prescriptions, and track your health journey</p>
+  const formatAppointmentTime = (timeString) => {
+    if (!timeString) return "";
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Left Column */}
-          <div className="space-y-6">
-            <div className="border border-gray-200 rounded-lg p-6">
-              <h2 className="text-lg font-semibold text-gray-800 mb-4">Upcoming Appointments</h2>
-              {upcomingAppointments.slice(0, 2).map((appointment, index) => (
-                <div key={index} className="mb-4 last:mb-0">
-                  <h3 className="font-semibold text-gray-800">{appointment.doctor}</h3>
-                  <p className="text-gray-600 text-sm">{appointment.specialty}</p>
-                  <p className="text-gray-500 text-sm">{appointment.date} • {appointment.time}</p>
+    const [hours, minutes] = timeString.split(":");
+
+    const date = new Date();
+    date.setHours(Number(hours), Number(minutes), 0, 0);
+
+    return date.toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit"
+    });
+  };
+
+  const getAppointmentStatusClass = (status) => {
+    switch (status) {
+      case "confirmed":
+        return "bg-green-100 text-green-700";
+
+      case "pending":
+        return "bg-yellow-100 text-yellow-700";
+
+      case "cancelled":
+        return "bg-red-100 text-red-700";
+
+      case "rescheduled":
+        return "bg-blue-100 text-blue-700";
+
+      case "completed":
+        return "bg-gray-100 text-gray-700";
+
+      default:
+        return "bg-gray-100 text-gray-700";
+    }
+  };
+
+  const renderDashboard = () => {
+    return (
+      <div className="space-y-6">
+        {/* Welcome Section */}
+        <div className="bg-gradient-to-r from-lime-500 to-lime-600 rounded-xl p-6 text-white">
+          <h1 className="text-2xl font-bold mb-2">
+            Welcome back, {user?.name || patient?.firstName || "Patient"}!
+          </h1>
+          <p className="text-lime-100">
+            Here&apos;s an overview of your healthcare information.
+          </p>
+        </div>
+
+        {/* NEW REAL APPOINTMENT NOTIFICATIONS */}
+        {pendingAppointments.length > 0 && (
+          <div className="bg-yellow-50 border border-yellow-300 rounded-xl p-5 shadow-sm">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="bg-yellow-100 p-2 rounded-full">
+                <Bell className="h-5 w-5 text-yellow-600" />
+              </div>
+
+              <div>
+                <h2 className="font-bold text-yellow-800">
+                  New Appointment Notification
+                  {pendingAppointments.length > 1 ? "s" : ""}
+                </h2>
+
+                <p className="text-sm text-yellow-700">
+                  Admin has scheduled{" "}
+                  {pendingAppointments.length} appointment
+                  {pendingAppointments.length > 1 ? "s" : ""} for you.
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              {pendingAppointments.map((appointment) => (
+                <div
+                  key={appointment.id}
+                  className="bg-white border border-yellow-200 rounded-lg p-4"
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <h3 className="font-semibold text-gray-800">
+                        {appointment.doctorName}
+                      </h3>
+
+                      <p className="text-sm text-lime-600 font-medium">
+                        {appointment.department}
+                      </p>
+                    </div>
+
+                    <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-700">
+                      <Clock className="h-3 w-3" />
+                      Pending
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-3 text-sm text-gray-600">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4 text-lime-600" />
+                      {formatAppointmentDate(appointment.date)}
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <Clock className="h-4 w-4 text-lime-600" />
+                      {formatAppointmentTime(appointment.time)}
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <StethoscopeIcon />
+                      {appointment.type}
+                    </div>
+
+                    {appointment.reason && (
+                      <div className="flex items-center gap-2">
+                        <FileText className="h-4 w-4 text-lime-600" />
+                        {appointment.reason}
+                      </div>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
+          </div>
+        )}
 
-            <div className="border border-gray-200 rounded-lg p-6">
-              <h2 className="text-lg font-semibold text-gray-800 mb-4">Active Prescriptions</h2>
-              <div className="space-y-2">
-                <p className="text-gray-700">1. Lab Results</p>
-                <p className="text-gray-700">2. Outstanding Balance</p>
-                <p className="text-gray-700">3. $245</p>
+        {/* Error Message */}
+        {appointmentError && (
+          <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg p-4">
+            {appointmentError}
+          </div>
+        )}
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-500">Upcoming Appointments</p>
+                <p className="text-2xl font-bold text-gray-800 mt-1">
+                  {activeAppointments.length > 0
+                    ? activeAppointments.length
+                    : upcomingAppointments.length}
+                </p>
+              </div>
+
+              <div className="bg-lime-100 p-3 rounded-lg">
+                <Calendar className="h-6 w-6 text-lime-600" />
               </div>
             </div>
           </div>
 
-          {/* Right Column */}
-          <div className="space-y-6">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="border border-gray-200 rounded-lg p-4 text-center hover:shadow-md transition-shadow cursor-pointer">
-                <h3 className="font-semibold text-gray-800 mb-2">My Prescription</h3>
-                <p className="text-sm text-gray-600">Your active prescriptions and download</p>
+          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-500">Prescriptions</p>
+                <p className="text-2xl font-bold text-gray-800 mt-1">
+                  {prescriptions.length}
+                </p>
               </div>
-              <div className="border border-gray-200 rounded-lg p-4 text-center hover:shadow-md transition-shadow cursor-pointer">
-                <h3 className="font-semibold text-gray-800 mb-2">Visit History</h3>
-                <p className="text-sm text-gray-600">View your medical history and visits</p>
-              </div>
-              <div className="border border-gray-200 rounded-lg p-4 text-center hover:shadow-md transition-shadow cursor-pointer">
-                <h3 className="font-semibold text-gray-800 mb-2">Lab Results</h3>
-                <p className="text-sm text-gray-600">Check your latest test results</p>
-              </div>
-              <div className="border border-gray-200 rounded-lg p-4 text-center hover:shadow-md transition-shadow cursor-pointer">
-                <h3 className="font-semibold text-gray-800 mb-2">My Profile</h3>
-                <p className="text-sm text-gray-600">Update personal and medical info</p>
+
+              <div className="bg-blue-100 p-3 rounded-lg">
+                <FileText className="h-6 w-6 text-blue-600" />
               </div>
             </div>
+          </div>
 
-            <div className="border border-gray-200 rounded-lg p-6">
-              <h2 className="text-lg font-semibold text-gray-800 mb-4">Quick Actions</h2>
-              <div className="space-y-3">
-                <button className="w-full text-left p-3 border border-gray-200 rounded-lg hover:bg-lime-50 transition-colors">
-                  <span className="font-medium text-gray-800">Book Appointment</span>
-                  <p className="text-sm text-gray-600 mt-1">Schedule a new appointment</p>
-                </button>
-                <button className="w-full text-left p-3 border border-gray-200 rounded-lg hover:bg-lime-50 transition-colors">
-                  <span className="font-medium text-gray-800">Payments</span>
-                  <p className="text-sm text-gray-600 mt-1">Manage bills and make payments</p>
-                </button>
+          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-500">Lab Results</p>
+                <p className="text-2xl font-bold text-gray-800 mt-1">
+                  {labResults.length}
+                </p>
+              </div>
+
+              <div className="bg-purple-100 p-3 rounded-lg">
+                <FlaskConical className="h-6 w-6 text-purple-600" />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-500">Visit History</p>
+                <p className="text-2xl font-bold text-gray-800 mt-1">
+                  {visitHistory.length}
+                </p>
+              </div>
+
+              <div className="bg-orange-100 p-3 rounded-lg">
+                <History className="h-6 w-6 text-orange-600" />
               </div>
             </div>
           </div>
         </div>
-      </div>
-    </div>
-  );
 
-  const renderAppointments = () => (
-    <div className="space-y-6">
-      <div className="bg-white rounded-lg shadow-sm p-6">
-        <h1 className="text-2xl font-bold text-gray-800 mb-2">My Appointments</h1>
-        <p className="text-gray-600 mb-6">Manage and schedule your medical appointments</p>
+        {/* Upcoming Appointments */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100">
+          <div className="p-6 border-b border-gray-100 flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-gray-800">
+              Upcoming Appointments
+            </h2>
 
-        <div className="space-y-6">
-          {upcomingAppointments.map((appointment, index) => (
-            <div key={index} className="border border-gray-200 rounded-lg p-6">
-              <h2 className="text-xl font-semibold text-gray-800 mb-2">{appointment.doctor}</h2>
-              <p className="text-gray-600 mb-4">{appointment.specialty}</p>
-              
-              <div className="space-y-2 text-gray-700 mb-4">
-                <p>{appointment.date}</p>
-                <p>{appointment.time}</p>
-                <p>{appointment.room}</p>
-              </div>
+            {appointmentLoading && (
+              <span className="text-xs text-gray-400">
+                Updating...
+              </span>
+            )}
+          </div>
 
-              <div className="flex space-x-3">
-                <button className="px-4 py-2 bg-lime-500 text-white rounded-lg font-medium hover:bg-lime-600 transition-colors">
-                  Reschedule
-                </button>
-                <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors">
-                  Cancel
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
+          <div className="divide-y divide-gray-100">
+            {activeAppointments.length > 0
+              ? activeAppointments.slice(0, 5).map((appointment) => (
+                  <div
+                    key={appointment.id}
+                    className="p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="bg-lime-100 p-3 rounded-lg">
+                        <Calendar className="h-5 w-5 text-lime-600" />
+                      </div>
 
-  const renderPrescriptions = () => (
-    <div className="space-y-6">
-      <div className="bg-white rounded-lg shadow-sm p-6">
-        <h1 className="text-2xl font-bold text-gray-800 mb-6">Prescriptions</h1>
-        
-        <div className="space-y-6">
-          {prescriptions.map((prescription, index) => (
-            <div key={index} className="border border-gray-200 rounded-lg p-6">
-              <h2 className="text-xl font-semibold text-gray-800 mb-2">{prescription.name}</h2>
-              <p className="text-gray-600 mb-4">Dr: {prescription.doctor}</p>
-              
-              <div className="space-y-2 text-gray-700">
-                <p><span className="font-medium">Dosage:</span> {prescription.dosage}</p>
-                <p><span className="font-medium">Frequency:</span> {prescription.frequency}</p>
-                <p><span className="font-medium">Valid until:</span> {prescription.validUntil}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
+                      <div>
+                        <h3 className="font-semibold text-gray-800">
+                          {appointment.doctorName}
+                        </h3>
 
-  const renderLabResults = () => (
-    <div className="space-y-6">
-      <div className="bg-white rounded-lg shadow-sm p-6">
-        <h1 className="text-2xl font-bold text-gray-800 mb-6">Lab Results</h1>
-        
-        <div className="space-y-8">
-          {labResults.map((lab, index) => (
-            <div key={index} className="border border-gray-200 rounded-lg p-6">
-              <h2 className="text-xl font-semibold text-gray-800 mb-2">{lab.testName}</h2>
-              <p className="text-gray-600 mb-4">{lab.date}</p>
-              
-              <div className="overflow-x-auto">
-                <table className="w-full border-collapse">
-                  <thead>
-                    <tr className="border-b border-gray-200">
-                      <th className="text-left py-2 font-semibold text-gray-700">Parameter</th>
-                      <th className="text-left py-2 font-semibold text-gray-700">Result</th>
-                      <th className="text-left py-2 font-semibold text-gray-700">Normal Range</th>
-                      <th className="text-left py-2 font-semibold text-gray-700">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {lab.parameters.map((param, paramIndex) => (
-                      <tr key={paramIndex} className="border-b border-gray-100">
-                        <td className="py-2 text-gray-700">{param.parameter}</td>
-                        <td className="py-2 text-gray-700">{param.result}</td>
-                        <td className="py-2 text-gray-600">{param.normalRange}</td>
-                        <td className="py-2 text-gray-700">{param.status}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          ))}
-        </div>
+                        <p className="text-sm text-gray-500">
+                          {appointment.department}
+                        </p>
 
-        <div className="mt-6">
-          <button className="px-4 py-2 bg-lime-500 text-white rounded-lg font-medium hover:bg-lime-600 transition-colors">
-            Download Results
-          </button>
-        </div>
-      </div>
-    </div>
-  );
+                        <p className="text-sm text-gray-500 mt-1">
+                          {formatAppointmentDate(appointment.date)} •{" "}
+                          {formatAppointmentTime(appointment.time)}
+                        </p>
+                      </div>
+                    </div>
 
-  const renderPayments = () => (
-    <div className="space-y-6">
-      <div className="bg-white rounded-lg shadow-sm p-6">
-        <h1 className="text-2xl font-bold text-gray-800 mb-2">Payments & Billing</h1>
-        <p className="text-gray-600 mb-6">Manage your invoices and make payments</p>
+                    <div className="flex items-center gap-3">
+                      <span
+                        className={`px-3 py-1 rounded-full text-xs font-semibold capitalize ${getAppointmentStatusClass(
+                          appointment.status
+                        )}`}
+                      >
+                        {appointment.status}
+                      </span>
+                    </div>
+                  </div>
+                ))
+              : upcomingAppointments.map((appointment) => (
+                  <div
+                    key={appointment.id}
+                    className="p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="bg-lime-100 p-3 rounded-lg">
+                        <Calendar className="h-5 w-5 text-lime-600" />
+                      </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Left Column */}
-          <div className="space-y-6">
-            <div className="border border-gray-200 rounded-lg p-6">
-              <h2 className="text-lg font-semibold text-gray-800 mb-4">Outstanding Balance</h2>
-              <p className="text-gray-600 mb-4">Please settle your due payments</p>
-              
-              <div className="space-y-2">
-                <p><span className="font-medium">Total Paid:</span> ${billingData.totalPaid.toFixed(2)}</p>
-                <p><span className="font-medium">Pending:</span> ${billingData.pending.toFixed(2)}</p>
-                <p><span className="font-medium">Question:</span> ${billingData.questioned.toFixed(2)}</p>
-              </div>
-            </div>
+                      <div>
+                        <h3 className="font-semibold text-gray-800">
+                          {appointment.doctor}
+                        </h3>
 
-            <div className="border border-gray-200 rounded-lg p-6">
-              <h2 className="text-lg font-semibold text-gray-800 mb-4">Recent Invoices</h2>
-              <div className="space-y-3">
-                {billingData.invoices.map((invoice, index) => (
-                  <div key={index} className="border-b border-gray-100 pb-2 last:border-b-0 last:pb-0">
-                    <p className="font-medium text-gray-800">{invoice.id}</p>
-                    <p className="text-sm text-gray-600">{invoice.description}</p>
+                        <p className="text-sm text-gray-500">
+                          {appointment.department}
+                        </p>
+
+                        <p className="text-sm text-gray-500 mt-1">
+                          {appointment.date} • {appointment.time}
+                        </p>
+                      </div>
+                    </div>
+
+                    <span className="px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">
+                      {appointment.status}
+                    </span>
                   </div>
                 ))}
-              </div>
-            </div>
+          </div>
+        </div>
+
+        {/* Recent Prescriptions */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100">
+          <div className="p-6 border-b border-gray-100">
+            <h2 className="text-lg font-semibold text-gray-800">
+              Recent Prescriptions
+            </h2>
           </div>
 
-          {/* Right Column */}
-          <div className="border border-gray-200 rounded-lg p-6">
-            <h2 className="text-lg font-semibold text-gray-800 mb-4">Last Plan</h2>
-            <div className="space-y-2">
-              <p><span className="font-medium">Total Paid:</span> $245.00</p>
-              <p><span className="font-medium">Pending:</span> $250.00</p>
-              {[...Array(8)].map((_, index) => (
-                <p key={index}><span className="font-medium">Question:</span> ${(350 + index * 50).toFixed(2)}</p>
+          <div className="divide-y divide-gray-100">
+            {prescriptions.map((prescription) => (
+              <div
+                key={prescription.id}
+                className="p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="bg-blue-100 p-3 rounded-lg">
+                    <FileText className="h-5 w-5 text-blue-600" />
+                  </div>
+
+                  <div>
+                    <h3 className="font-semibold text-gray-800">
+                      {prescription.medicine} - {prescription.dosage}
+                    </h3>
+
+                    <p className="text-sm text-gray-500">
+                      {prescription.frequency}
+                    </p>
+
+                    <p className="text-sm text-gray-500">
+                      Prescribed by {prescription.doctor}
+                    </p>
+                  </div>
+                </div>
+
+                <span className="text-sm text-gray-500">
+                  {prescription.date}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const renderAppointments = () => {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-800">
+              My Appointments
+            </h1>
+            <p className="text-gray-500 mt-1">
+              View your appointments scheduled by the hospital.
+            </p>
+          </div>
+
+          {appointmentLoading && (
+            <span className="text-sm text-gray-500">
+              Refreshing...
+            </span>
+          )}
+        </div>
+
+        {appointmentError && (
+          <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg p-4">
+            {appointmentError}
+          </div>
+        )}
+
+        {/* Notification Section */}
+        {pendingAppointments.length > 0 && (
+          <div className="bg-yellow-50 border border-yellow-300 rounded-xl p-5">
+            <div className="flex items-center gap-3 mb-4">
+              <Bell className="h-5 w-5 text-yellow-600" />
+
+              <div>
+                <h2 className="font-semibold text-yellow-800">
+                  New Appointment Notification
+                  {pendingAppointments.length > 1 ? "s" : ""}
+                </h2>
+
+                <p className="text-sm text-yellow-700">
+                  {pendingAppointments.length} pending appointment
+                  {pendingAppointments.length > 1 ? "s" : ""} assigned to you.
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              {pendingAppointments.map((appointment) => (
+                <div
+                  key={appointment.id}
+                  className="bg-white rounded-lg border border-yellow-200 p-4"
+                >
+                  <div className="font-semibold text-gray-800">
+                    {appointment.doctorName}
+                  </div>
+
+                  <div className="text-sm text-gray-600 mt-2">
+                    {formatAppointmentDate(appointment.date)} •{" "}
+                    {formatAppointmentTime(appointment.time)}
+                  </div>
+
+                  <div className="text-sm text-gray-600 mt-1">
+                    {appointment.type}
+                  </div>
+
+                  {appointment.reason && (
+                    <div className="text-sm text-gray-600 mt-1">
+                      Reason: {appointment.reason}
+                    </div>
+                  )}
+                </div>
               ))}
             </div>
           </div>
+        )}
+
+        {/* Appointments List */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100">
+          {appointments.length === 0 ? (
+            <div className="p-10 text-center text-gray-500">
+              <Calendar className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+              <p>No appointments found.</p>
+            </div>
+          ) : (
+            <div className="divide-y divide-gray-100">
+              {appointments.map((appointment) => (
+                <div key={appointment.id} className="p-6">
+                  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                    <div>
+                      <h3 className="font-semibold text-gray-800">
+                        {appointment.doctorName}
+                      </h3>
+
+                      <p className="text-sm text-lime-600 mt-1">
+                        {appointment.department}
+                      </p>
+
+                      <div className="text-sm text-gray-500 mt-2">
+                        {formatAppointmentDate(appointment.date)} •{" "}
+                        {formatAppointmentTime(appointment.time)}
+                      </div>
+
+                      <div className="text-sm text-gray-500 mt-1">
+                        {appointment.type}
+                      </div>
+
+                      {appointment.reason && (
+                        <div className="text-sm text-gray-600 mt-2">
+                          Reason: {appointment.reason}
+                        </div>
+                      )}
+                    </div>
+
+                    <span
+                      className={`px-3 py-1 rounded-full text-xs font-semibold capitalize ${getAppointmentStatusClass(
+                        appointment.status
+                      )}`}
+                    >
+                      {appointment.status}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
-  const renderProfile = () => (
-    <div className="space-y-6">
-      <div className="bg-white rounded-lg shadow-sm p-6">
-        <h1 className="text-2xl font-bold text-gray-800 mb-2">My Profile</h1>
-        <p className="text-gray-600 mb-6">Manage your personal and medical information</p>
+  const renderProfile = () => {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-800">
+            My Profile
+          </h1>
+          <p className="text-gray-500 mt-1">
+            View your personal information.
+          </p>
+        </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Personal Information */}
-          <div className="space-y-6">
-            <div className="border border-gray-200 rounded-lg p-6">
-              <h2 className="text-lg font-semibold text-gray-800 mb-4">Personal Information</h2>
-              <div className="space-y-4">
-                <div>
-                  <p className="text-sm text-gray-500">Full Name</p>
-                  <p className="text-gray-800">John Doe</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500">Date of Birth</p>
-                  <p className="text-gray-800">03/15/1985</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500">Email</p>
-                  <p className="text-gray-800">john.doe@email.com</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500">Phone</p>
-                  <p className="text-gray-800">+1 (555) 123-4567</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500">Address</p>
-                  <p className="text-gray-800">123 Main Street, City, State 12345</p>
-                </div>
-              </div>
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+          <div className="flex items-center gap-4 mb-6">
+            <div className="bg-lime-100 p-4 rounded-full">
+              <User className="h-8 w-8 text-lime-600" />
+            </div>
+
+            <div>
+              <h2 className="text-xl font-semibold text-gray-800">
+                {patient?.firstName} {patient?.lastName}
+              </h2>
+
+              <p className="text-gray-500">
+                Patient ID: {patient?.patientId || patient?.id || "N/A"}
+              </p>
             </div>
           </div>
 
-          {/* Medical Information */}
-          <div className="space-y-6">
-            <div className="border border-gray-200 rounded-lg p-6">
-              <h2 className="text-lg font-semibold text-gray-800 mb-4">Medical Information</h2>
-              <div className="space-y-4">
-                <div>
-                  <p className="text-sm text-gray-500">Blood Type</p>
-                  <p className="text-gray-800 font-medium">O+</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500">Medical Conditions</p>
-                  <p className="text-gray-800">Hypertension, Diabetes (Type 2)</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500">Emergency Contact</p>
-                  <p className="text-gray-800">Jane Doe • +1 (555) 987-6543</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500">Allergies</p>
-                  <p className="text-gray-800">Penicillin, Sulfa Drugs</p>
-                </div>
-              </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <p className="text-sm text-gray-500">Email</p>
+              <p className="font-medium text-gray-800">
+                {patient?.email || user?.email || "N/A"}
+              </p>
             </div>
 
-            <button className="w-full px-4 py-3 bg-lime-500 text-white rounded-lg font-medium hover:bg-lime-600 transition-colors">
-              Update Profile
-            </button>
+            <div>
+              <p className="text-sm text-gray-500">Phone</p>
+              <p className="font-medium text-gray-800">
+                {patient?.phone || "N/A"}
+              </p>
+            </div>
+
+            <div>
+              <p className="text-sm text-gray-500">Date of Birth</p>
+              <p className="font-medium text-gray-800">
+                {patient?.dateOfBirth || "N/A"}
+              </p>
+            </div>
+
+            <div>
+              <p className="text-sm text-gray-500">Gender</p>
+              <p className="font-medium text-gray-800">
+                {patient?.gender || "N/A"}
+              </p>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
-  const renderVisitHistory = () => (
-    <div className="space-y-6">
-      <div className="bg-white rounded-lg shadow-sm p-6">
-        <h1 className="text-2xl font-bold text-gray-800 mb-6">Visit History</h1>
-        
-        <div className="space-y-6">
-          {visitHistory.map((visit, index) => (
-            <div key={index} className="border border-gray-200 rounded-lg p-6">
-              <h2 className="text-xl font-semibold text-gray-800 mb-2">{visit.doctor}</h2>
-              <p className="text-gray-600 mb-4">{visit.specialty}</p>
-              
-              <div className="space-y-3 mb-4">
-                <p className="text-gray-700">{visit.date}</p>
-                <p className="text-gray-700"><span className="font-medium">Diagnosis:</span> {visit.diagnosis}</p>
-              </div>
+  const renderPrescriptions = () => {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-800">
+            Prescriptions
+          </h1>
+          <p className="text-gray-500 mt-1">
+            View your current prescriptions.
+          </p>
+        </div>
 
-              <div className="border-t border-gray-200 pt-4">
-                <h3 className="font-semibold text-gray-800 mb-2">Clinical Notes</h3>
-                <p className="text-gray-600 mb-4">{visit.notes}</p>
-                
-                <h3 className="font-semibold text-gray-800 mb-2">Prescriptions</h3>
-                <p className="text-gray-600">{visit.prescription}</p>
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 divide-y">
+          {prescriptions.map((prescription) => (
+            <div key={prescription.id} className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-semibold text-gray-800">
+                    {prescription.medicine}
+                  </h3>
+
+                  <p className="text-sm text-gray-500">
+                    {prescription.dosage} • {prescription.frequency}
+                  </p>
+
+                  <p className="text-sm text-gray-500 mt-1">
+                    Doctor: {prescription.doctor}
+                  </p>
+                </div>
+
+                <FileText className="h-6 w-6 text-blue-500" />
               </div>
             </div>
           ))}
         </div>
       </div>
-    </div>
-  );
+    );
+  };
+
+  const renderLabResults = () => {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-800">
+            Lab Results
+          </h1>
+          <p className="text-gray-500 mt-1">
+            View your available laboratory results.
+          </p>
+        </div>
+
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 divide-y">
+          {labResults.map((result) => (
+            <div key={result.id} className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-semibold text-gray-800">
+                    {result.test}
+                  </h3>
+
+                  <p className="text-sm text-gray-500">
+                    Date: {result.date}
+                  </p>
+
+                  <p className="text-sm text-gray-500">
+                    Doctor: {result.doctor}
+                  </p>
+                </div>
+
+                <span className="px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">
+                  {result.status}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  const renderPayments = () => {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-800">
+            Payments & Billing
+          </h1>
+          <p className="text-gray-500 mt-1">
+            View your billing and payment history.
+          </p>
+        </div>
+
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 divide-y">
+          {billingData.map((bill) => (
+            <div key={bill.id} className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-semibold text-gray-800">
+                    {bill.description}
+                  </h3>
+
+                  <p className="text-sm text-gray-500">
+                    {bill.date}
+                  </p>
+                </div>
+
+                <div className="text-right">
+                  <p className="font-semibold text-gray-800">
+                    {bill.amount}
+                  </p>
+
+                  <span className="text-xs text-green-600">
+                    {bill.status}
+                  </span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  const renderVisitHistory = () => {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-800">
+            Visit History
+          </h1>
+          <p className="text-gray-500 mt-1">
+            View your previous visits.
+          </p>
+        </div>
+
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 divide-y">
+          {visitHistory.map((visit) => (
+            <div key={visit.id} className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-semibold text-gray-800">
+                    {visit.doctor}
+                  </h3>
+
+                  <p className="text-sm text-gray-500">
+                    {visit.department}
+                  </p>
+
+                  <p className="text-sm text-gray-500 mt-1">
+                    {visit.date} • {visit.diagnosis}
+                  </p>
+                </div>
+
+                <span className="px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700">
+                  {visit.status}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
 
   const renderModuleContent = () => {
     switch (activeModule) {
-      case 'dashboard':
+      case "dashboard":
         return renderDashboard();
-      case 'appointments':
+
+      case "appointments":
         return renderAppointments();
-      case 'profile':
+
+      case "profile":
         return renderProfile();
-      case 'prescriptions':
+
+      case "prescriptions":
         return renderPrescriptions();
-      case 'lab-results':
+
+      case "lab-results":
         return renderLabResults();
-      case 'payments':
+
+      case "payments":
         return renderPayments();
-      case 'history':
+
+      case "history":
         return renderVisitHistory();
+
       default:
         return renderDashboard();
     }
   };
 
   return (
-    <div className="flex h-screen bg-gray-50">
-      <UserSidebar 
+    <div className="min-h-screen bg-gray-50 flex">
+      <UserSidebar
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
         activeModule={activeModule}
         setActiveModule={setActiveModule}
       />
-      
-      <main className="flex-1 overflow-auto">
-        <div className="p-2 mt-2 mb-2">
+
+      <main
+        className={`flex-1 transition-all duration-300 ${
+          sidebarOpen ? "ml-64" : "ml-20"
+        }`}
+      >
+        <div className="p-6">
           {renderModuleContent()}
         </div>
       </main>
     </div>
   );
 };
+
+const StethoscopeIcon = () => (
+  <Stethoscope className="h-4 w-4 text-lime-600" />
+);
 
 export default UserDashboard;

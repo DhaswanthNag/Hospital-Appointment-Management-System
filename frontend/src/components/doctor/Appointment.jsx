@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+// import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useCallback } from 'react';
 import { 
   Calendar, 
   Clock, 
@@ -15,14 +16,19 @@ import {
   Phone,
   MapPin
 } from 'lucide-react';
+import api from '../../api/api';
+import { AuthContext } from '../../context/AuthContext';
 
-const API_BASE = 'http://localhost:8080/api/appointments';
-const DOCTOR_API = 'http://localhost:8080/api/doctors';
+const API_BASE = '/api/appointments';
+const DOCTOR_API = '/api/doctors';
 
 const AppointmentManagement = () => {
+  const { user: contextUser } = useContext(AuthContext);
+
   const [appointments, setAppointments] = useState([]);
   const [filteredAppointments, setFilteredAppointments] = useState([]);
   const [doctor, setDoctor] = useState(null);
+  const [currentDoctorId, setCurrentDoctorId] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [loading, setLoading] = useState(true);
@@ -30,138 +36,134 @@ const AppointmentManagement = () => {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isRescheduleModalOpen, setIsRescheduleModalOpen] = useState(false);
 
-  // Mock doctor data - in real app, this would come from auth context
-  const currentDoctorId = 'DOC001'; // This should come from doctor's login context
+  // Get the logged-in user from AuthContext or localStorage
+  const getLoggedInUser = useCallback(() => {
+    if (contextUser) {
+      return contextUser;
+    }
 
-  useEffect(() => {
-    fetchDoctorData();
-    fetchAppointments();
-  }, []);
-
-  useEffect(() => {
-    filterAppointments();
-  }, [searchTerm, filterStatus, appointments]);
-
-  const fetchDoctorData = async () => {
     try {
-      // In real app, this would be the logged-in doctor's ID
-      const res = await fetch(`${DOCTOR_API}/${currentDoctorId}`);
-      if (res.ok) {
-        const doctorData = await res.json();
-        setDoctor(doctorData);
+      const savedUser = localStorage.getItem('hams_user');
+
+      if (savedUser) {
+        return JSON.parse(savedUser);
+      }
+    } catch (error) {
+      console.error('Error reading logged-in user:', error);
+    }
+
+    return null;
+  }, [contextUser]);
+
+  const fetchDoctorData = useCallback(async () => {
+    try {
+      const loggedInUser = getLoggedInUser();
+
+      if (!loggedInUser?.email) {
+        console.error('Logged-in doctor email not found');
+        setDoctor(null);
+        setCurrentDoctorId(null);
+        setLoading(false);
+        return;
+      }
+
+      // Get all doctors and find the doctor belonging to the logged-in user
+      const response = await api.get(DOCTOR_API);
+
+      const doctors = Array.isArray(response.data)
+        ? response.data
+        : [];
+
+      const loggedInDoctor = doctors.find(
+        (doctorData) =>
+          doctorData.email?.toLowerCase() === loggedInUser.email.toLowerCase()
+      );
+
+      if (loggedInDoctor) {
+        setDoctor(loggedInDoctor);
+        setCurrentDoctorId(loggedInDoctor.id);
+
+        console.log(
+          'Logged-in doctor found:',
+          loggedInDoctor.name,
+          loggedInDoctor.id
+        );
+      } else {
+        console.error(
+          'No doctor found for logged-in email:',
+          loggedInUser.email
+        );
+
+        setDoctor(null);
+        setCurrentDoctorId(null);
+        setAppointments([]);
       }
     } catch (error) {
       console.error('Error fetching doctor data:', error);
-      // Fallback mock data
-      setDoctor({
-        id: 'DOC001',
-        name: 'Dr. Sarah Johnson',
-        specialization: 'Cardiology',
-        email: 's.johnson@hospital.com',
-        phone: '+1-555-0123',
-        department: 'Cardiology'
-      });
-    }
-  };
 
-  const fetchAppointments = async () => {
-    setLoading(true);
+      setDoctor(null);
+      setCurrentDoctorId(null);
+      setAppointments([]);
+    }
+  }, [getLoggedInUser]);
+
+  const fetchAppointments = useCallback(async () => {
+    if (!currentDoctorId) {
+      return;
+    }
+
     try {
-      const res = await fetch(`${API_BASE}/doctor/${currentDoctorId}`);
-      if (res.ok) {
-        const data = await res.json();
-        setAppointments(data);
+      const response = await api.get(
+        `${API_BASE}/doctor/${currentDoctorId}`
+      );
+
+      if (Array.isArray(response.data)) {
+        setAppointments(response.data);
+
+        console.log(
+          `Appointments loaded for doctor ${currentDoctorId}:`,
+          response.data
+        );
       } else {
-        // Fallback to mock data if API fails
-        setAppointments(getMockAppointments());
+        setAppointments([]);
       }
     } catch (error) {
       console.error('Error fetching appointments:', error);
-      setAppointments(getMockAppointments());
+
+      // Do not show mock appointments when the real API fails.
+      // This keeps the dashboard restricted to real database appointments.
+      setAppointments([]);
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentDoctorId]);
 
-  const getMockAppointments = () => [
-    {
-      id: 'APT001',
-      _dbId: '1',
-      patientId: 'PAT001',
-      patientName: 'John Doe',
-      patientEmail: 'john.doe@email.com',
-      patientPhone: '+1-555-0001',
-      patientAddress: '123 Main St, City, State',
-      dateOfBirth: '1985-03-15',
-      gender: 'Male',
-      doctorId: 'DOC001',
-      doctorName: 'Dr. Sarah Johnson',
-      department: 'Cardiology',
-      date: '2024-03-20',
-      time: '10:00',
-      duration: 30,
-      type: 'Consultation',
-      reason: 'Heart checkup and follow-up',
-      status: 'pending',
-      bookedAt: '2024-03-15T10:30:00',
-      notes: 'Patient has history of hypertension',
-      room: '301'
-    },
-    {
-      id: 'APT002',
-      _dbId: '2',
-      patientId: 'PAT002',
-      patientName: 'Jane Smith',
-      patientEmail: 'jane.smith@email.com',
-      patientPhone: '+1-555-0002',
-      patientAddress: '456 Oak Ave, City, State',
-      dateOfBirth: '1990-07-22',
-      gender: 'Female',
-      doctorId: 'DOC001',
-      doctorName: 'Dr. Sarah Johnson',
-      department: 'Cardiology',
-      date: '2024-03-20',
-      time: '10:30',
-      duration: 45,
-      type: 'Follow-up',
-      reason: 'Post-treatment follow-up',
-      status: 'confirmed',
-      bookedAt: '2024-03-16T09:15:00',
-      notes: 'Regular checkup after medication',
-      room: '305'
-    },
-    {
-      id: 'APT003',
-      _dbId: '3',
-      patientId: 'PAT003',
-      patientName: 'Mike Wilson',
-      patientEmail: 'mike.wilson@email.com',
-      patientPhone: '+1-555-0003',
-      patientAddress: '789 Pine Rd, City, State',
-      dateOfBirth: '1978-11-30',
-      gender: 'Male',
-      doctorId: 'DOC001',
-      doctorName: 'Dr. Sarah Johnson',
-      department: 'Cardiology',
-      date: '2024-03-21',
-      time: '14:00',
-      duration: 60,
-      type: 'ECG Test',
-      reason: 'ECG testing and analysis',
-      status: 'pending',
-      bookedAt: '2024-03-14T16:45:00',
-      notes: 'Patient requested morning appointment if possible',
-      room: '310'
+  useEffect(() => {
+    fetchDoctorData();
+  }, [fetchDoctorData]);
+
+  useEffect(() => {
+    if (!currentDoctorId) {
+      return;
     }
-  ];
 
-  const filterAppointments = () => {
+    fetchAppointments();
+
+    // Automatically refresh appointments every 5 seconds
+    const interval = setInterval(() => {
+      fetchAppointments();
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [currentDoctorId, fetchAppointments]);
+
+  const filterAppointments = useCallback(() => {
     let filtered = appointments;
 
     if (searchTerm) {
       filtered = filtered.filter(apt =>
-        apt.patientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        apt.id.toLowerCase().includes(searchTerm.toLowerCase())
+        (apt.patientName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (apt.appointmentId || apt.id || '').toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
@@ -170,29 +172,116 @@ const AppointmentManagement = () => {
     }
 
     setFilteredAppointments(filtered);
-  };
+  }, [appointments, searchTerm, filterStatus]);
+
+  useEffect(() => {
+    filterAppointments();
+  }, [filterAppointments]);
+
+  // const getMockAppointments = () => [
+  //   { 
+  //     id: 'APT001', 
+  //     _dbId: '1', 
+  //     patientId: 'PAT001', 
+  //     patientName: 'John Doe', 
+  //     patientEmail: 'john.doe@email.com', 
+  //     patientPhone: '+1-555-0001', 
+  //     patientAddress: '123 Main St, City, State', 
+  //     dateOfBirth: '1985-03-15', 
+  //     gender: 'Male', 
+  //     doctorId: 'DOC001', 
+  //     doctorName: 'Dr. Sarah Johnson', 
+  //     department: 'Cardiology', 
+  //     date: '2024-03-20', 
+  //     time: '10:00', 
+  //     duration: 30, 
+  //     type: 'Consultation', 
+  //     reason: 'Heart checkup and follow-up', 
+  //     status: 'pending', 
+  //     bookedAt: '2024-03-15T10:30:00', 
+  //     notes: 'Patient has history of hypertension', 
+  //     room: '301' 
+  //   }, 
+  //   { 
+  //     id: 'APT002', 
+  //     _dbId: '2', 
+  //     patientId: 'PAT002', 
+  //     patientName: 'Jane Smith', 
+  //     patientEmail: 'jane.smith@email.com', 
+  //     patientPhone: '+1-555-0002', 
+  //     patientAddress: '456 Oak Ave, City, State', 
+  //     dateOfBirth: '1990-07-22', 
+  //     gender: 'Female', 
+  //     doctorId: 'DOC001', 
+  //     doctorName: 'Dr. Sarah Johnson', 
+  //     department: 'Cardiology', 
+  //     date: '2024-03-20', 
+  //     time: '10:30', 
+  //     duration: 45, 
+  //     type: 'Follow-up', 
+  //     reason: 'Post-treatment follow-up', 
+  //     status: 'confirmed', 
+  //     bookedAt: '2024-03-16T09:15:00', 
+  //     notes: 'Regular checkup after medication', 
+  //     room: '305' 
+  //   }, 
+  //   { 
+  //     id: 'APT003', 
+  //     _dbId: '3', 
+  //     patientId: 'PAT003', 
+  //     patientName: 'Mike Wilson', 
+  //     patientEmail: 'mike.wilson@email.com', 
+  //     patientPhone: '+1-555-0003', 
+  //     patientAddress: '789 Pine Rd, City, State', 
+  //     dateOfBirth: '1978-11-30', 
+  //     gender: 'Male', 
+  //     doctorId: 'DOC001', 
+  //     doctorName: 'Dr. Sarah Johnson', 
+  //     department: 'Cardiology', 
+  //     date: '2024-03-21', 
+  //     time: '14:00', 
+  //     duration: 60, 
+  //     type: 'ECG Test', 
+  //     reason: 'ECG testing and analysis', 
+  //     status: 'pending', 
+  //     bookedAt: '2024-03-14T16:45:00', 
+  //     notes: 'Patient requested morning appointment if possible', 
+  //     room: '310' 
+  //   } 
+  // ]; 
 
   const handleStatusUpdate = async (appointmentId, newStatus) => {
     try {
       const appointment = appointments.find(apt => apt.id === appointmentId);
+
+      if (!appointment) {
+        console.error('Appointment not found:', appointmentId);
+        return;
+      }
+
       const updatedAppointment = {
         ...appointment,
         status: newStatus
       };
 
-      const res = await fetch(`${API_BASE}/${appointment._dbId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(updatedAppointment),
-      });
+      // Real database appointments use "id" as the UUID.
+      // Mock appointments use "_dbId", so support both.
+      const databaseId = appointment.id || appointment._dbId;
 
-      if (res.ok) {
+      const res = await api.put(
+        `${API_BASE}/${databaseId}`,
+        updatedAppointment
+      );
+
+      if (res.status >= 200 && res.status < 300) {
         setAppointments(prev =>
-          prev.map(apt => (apt.id === appointmentId ? { ...apt, status: newStatus } : apt))
+          prev.map(apt =>
+            apt.id === appointmentId
+              ? { ...apt, status: newStatus }
+              : apt
+          )
         );
-        
+
         // Show notification
         alert(`Appointment ${newStatus} successfully!`);
       }
@@ -213,18 +302,25 @@ const AppointmentManagement = () => {
         status: 'rescheduled'
       };
 
-      const res = await fetch(`${API_BASE}/${selectedAppointment._dbId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(updatedAppointment),
-      });
+      // Real database appointments use "id" as the UUID.
+      // Mock appointments use "_dbId", so support both.
+      const databaseId =
+        selectedAppointment.id || selectedAppointment._dbId;
 
-      if (res.ok) {
+      const res = await api.put(
+        `${API_BASE}/${databaseId}`,
+        updatedAppointment
+      );
+
+      if (res.status >= 200 && res.status < 300) {
         setAppointments(prev =>
-          prev.map(apt => (apt.id === selectedAppointment.id ? updatedAppointment : apt))
+          prev.map(apt =>
+            apt.id === selectedAppointment.id
+              ? updatedAppointment
+              : apt
+          )
         );
+
         setIsRescheduleModalOpen(false);
         setSelectedAppointment(null);
         alert('Appointment rescheduled successfully!');
@@ -375,22 +471,22 @@ const AppointmentManagement = () => {
             {/* Search */}
             <div className="relative flex-1 min-w-[300px]">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <input
-                type="text"
-                placeholder="Search appointments by patient name or ID..."
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-lime-400 transition duration-300 focus:border-transparent"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+              <input 
+                type="text" 
+                placeholder="Search appointments by patient name or ID..." 
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-lime-400 transition duration-300 focus:border-transparent" 
+                value={searchTerm} 
+                onChange={(e) => setSearchTerm(e.target.value)} 
               />
             </div>
 
             {/* Status Filter */}
             <div className="flex items-center gap-2">
               <Filter className="h-4 w-4 text-gray-400" />
-              <select
-                className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-lime-400 transition duration-300 focus:border-transparent"
-                value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value)}
+              <select 
+                className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-lime-400 transition duration-300 focus:border-transparent" 
+                value={filterStatus} 
+                onChange={(e) => setFilterStatus(e.target.value)} 
               >
                 <option value="all">All Status</option>
                 <option value="pending">Pending</option>
@@ -446,18 +542,18 @@ const AppointmentManagement = () => {
             <div className="flex gap-2">
               {appointment.status === 'pending' && (
                 <>
-                  <button
-                    onClick={() => handleStatusUpdate(appointment.id, 'confirmed')}
+                  <button 
+                    onClick={() => handleStatusUpdate(appointment.id, 'confirmed')} 
                     className="flex-1 bg-lime-500 hover:bg-lime-600 text-white py-2 px-3 rounded-lg font-medium text-sm flex items-center justify-center gap-1 transition-colors"
                   >
                     <CheckCircle className="h-3 w-3" />
                     Confirm
                   </button>
-                  <button
-                    onClick={() => {
-                      setSelectedAppointment(appointment);
-                      setIsRescheduleModalOpen(true);
-                    }}
+                  <button 
+                    onClick={() => { 
+                      setSelectedAppointment(appointment); 
+                      setIsRescheduleModalOpen(true); 
+                    }} 
                     className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white py-2 px-3 rounded-lg font-medium text-sm flex items-center justify-center gap-1 transition-colors"
                   >
                     <RefreshCw className="h-3 w-3" />
@@ -465,11 +561,11 @@ const AppointmentManagement = () => {
                   </button>
                 </>
               )}
-              <button
-                onClick={() => {
-                  setSelectedAppointment(appointment);
-                  setIsDetailModalOpen(true);
-                }}
+              <button 
+                onClick={() => { 
+                  setSelectedAppointment(appointment); 
+                  setIsDetailModalOpen(true); 
+                }} 
                 className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 px-3 rounded-lg font-medium text-sm flex items-center justify-center gap-1 transition-colors"
               >
                 <User className="h-3 w-3" />
@@ -481,15 +577,15 @@ const AppointmentManagement = () => {
             {appointment.status !== 'cancelled' && appointment.status !== 'completed' && (
               <div className="flex gap-1 mt-3">
                 {appointment.status !== 'confirmed' && (
-                  <button
-                    onClick={() => handleStatusUpdate(appointment.id, 'confirmed')}
+                  <button 
+                    onClick={() => handleStatusUpdate(appointment.id, 'confirmed')} 
                     className="flex-1 bg-lime-50 hover:bg-lime-100 text-lime-700 py-1 px-2 rounded text-xs font-medium transition-colors"
                   >
                     Confirm
                   </button>
                 )}
-                <button
-                  onClick={() => handleStatusUpdate(appointment.id, 'cancelled')}
+                <button 
+                  onClick={() => handleStatusUpdate(appointment.id, 'cancelled')} 
                   className="flex-1 bg-red-50 hover:bg-red-100 text-red-700 py-1 px-2 rounded text-xs font-medium transition-colors"
                 >
                   Cancel
@@ -518,8 +614,8 @@ const AppointmentManagement = () => {
             <div className="p-6 border-b border-gray-200">
               <div className="flex justify-between items-center">
                 <h2 className="text-2xl font-bold text-gray-800">Appointment Details</h2>
-                <button
-                  onClick={() => setIsDetailModalOpen(false)}
+                <button 
+                  onClick={() => setIsDetailModalOpen(false)} 
                   className="text-gray-400 hover:text-gray-600 transition-colors"
                 >
                   <XCircle className="h-6 w-6" />
@@ -602,21 +698,21 @@ const AppointmentManagement = () => {
               <div className="flex gap-3 pt-6 border-t border-gray-200">
                 {selectedAppointment.status === 'pending' && (
                   <>
-                    <button
-                      onClick={() => {
-                        handleStatusUpdate(selectedAppointment.id, 'confirmed');
-                        setIsDetailModalOpen(false);
-                      }}
+                    <button 
+                      onClick={() => { 
+                        handleStatusUpdate(selectedAppointment.id, 'confirmed'); 
+                        setIsDetailModalOpen(false); 
+                      }} 
                       className="flex-1 bg-lime-500 hover:bg-lime-600 text-white py-3 px-4 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors"
                     >
                       <CheckCircle className="h-4 w-4" />
                       Confirm Appointment
                     </button>
-                    <button
-                      onClick={() => {
-                        setIsDetailModalOpen(false);
-                        setIsRescheduleModalOpen(true);
-                      }}
+                    <button 
+                      onClick={() => { 
+                        setIsDetailModalOpen(false); 
+                        setIsRescheduleModalOpen(true); 
+                      }} 
                       className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white py-3 px-4 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors"
                     >
                       <RefreshCw className="h-4 w-4" />
@@ -624,8 +720,8 @@ const AppointmentManagement = () => {
                     </button>
                   </>
                 )}
-                <button
-                  onClick={() => setIsDetailModalOpen(false)}
+                <button 
+                  onClick={() => setIsDetailModalOpen(false)} 
                   className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 px-4 rounded-lg font-medium transition-colors"
                 >
                   Close
@@ -643,8 +739,8 @@ const AppointmentManagement = () => {
             <div className="p-6 border-b border-gray-200">
               <div className="flex justify-between items-center">
                 <h2 className="text-xl font-bold text-gray-800">Reschedule Appointment</h2>
-                <button
-                  onClick={() => setIsRescheduleModalOpen(false)}
+                <button 
+                  onClick={() => setIsRescheduleModalOpen(false)} 
                   className="text-gray-400 hover:text-gray-600 transition-colors"
                 >
                   <XCircle className="h-6 w-6" />
@@ -657,11 +753,11 @@ const AppointmentManagement = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   New Date
                 </label>
-                <input
-                  type="date"
-                  min={new Date().toISOString().split('T')[0]}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-lime-400 transition duration-300 focus:border-transparent"
-                  onChange={(e) => setSelectedAppointment(prev => ({ ...prev, date: e.target.value }))}
+                <input 
+                  type="date" 
+                  min={new Date().toISOString().split('T')[0]} 
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-lime-400 transition duration-300 focus:border-transparent" 
+                  onChange={(e) => setSelectedAppointment(prev => ({ ...prev, date: e.target.value }))} 
                 />
               </div>
               
@@ -669,22 +765,22 @@ const AppointmentManagement = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   New Time
                 </label>
-                <input
-                  type="time"
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-lime-400 transition duration-300 focus:border-transparent"
-                  onChange={(e) => setSelectedAppointment(prev => ({ ...prev, time: e.target.value }))}
+                <input 
+                  type="time" 
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-lime-400 transition duration-300 focus:border-transparent" 
+                  onChange={(e) => setSelectedAppointment(prev => ({ ...prev, time: e.target.value }))} 
                 />
               </div>
 
               <div className="flex gap-3 pt-4">
-                <button
-                  onClick={() => setIsRescheduleModalOpen(false)}
+                <button 
+                  onClick={() => setIsRescheduleModalOpen(false)} 
                   className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 px-4 rounded-lg font-medium transition-colors"
                 >
                   Cancel
                 </button>
-                <button
-                  onClick={() => handleReschedule(selectedAppointment.date, selectedAppointment.time)}
+                <button 
+                  onClick={() => handleReschedule(selectedAppointment.date, selectedAppointment.time)} 
                   className="flex-1 bg-lime-500 hover:bg-lime-600 text-white py-2 px-4 rounded-lg font-medium transition-colors"
                 >
                   Reschedule
