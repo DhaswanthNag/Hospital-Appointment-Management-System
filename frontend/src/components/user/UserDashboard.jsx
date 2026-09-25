@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useContext, useCallback } from "react";
 import UserSidebar from "../../sidebar/UserSidebar";
+import Appointment from "./Appointment";
+import Prescription from "./Prescription";
 // import PropTypes from "prop-types";
 import { AuthContext } from "../../context/AuthContext";
 // import { API_BASE_URL } from "../../config";
@@ -30,6 +32,10 @@ const UserDashboard = () => {
   const [appointments, setAppointments] = useState([]);
   const [appointmentLoading, setAppointmentLoading] = useState(false);
   const [appointmentError, setAppointmentError] = useState(null);
+  const [confirmingAppointmentId, setConfirmingAppointmentId] = useState(null);
+
+  const [prescriptions, setPrescriptions] = useState([]);
+  const [prescriptionLoading, setPrescriptionLoading] = useState(false);
 
   // Existing dashboard data
   const upcomingAppointments = [
@@ -50,25 +56,6 @@ const UserDashboard = () => {
       time: "02:30 PM",
       type: "Follow-up",
       status: "Pending"
-    }
-  ];
-
-  const prescriptions = [
-    {
-      id: 1,
-      medicine: "Amlodipine",
-      dosage: "5mg",
-      frequency: "Once daily",
-      doctor: "Dr. Sarah Johnson",
-      date: "2024-03-10"
-    },
-    {
-      id: 2,
-      medicine: "Metformin",
-      dosage: "500mg",
-      frequency: "Twice daily",
-      doctor: "Dr. Michael Chen",
-      date: "2024-03-05"
     }
   ];
 
@@ -272,6 +259,90 @@ const UserDashboard = () => {
     return () => clearInterval(interval);
   }, [patient, fetchPatientAppointments]);
 
+  // Fetch this patient's real prescriptions
+  const fetchPatientPrescriptions = useCallback(async () => {
+    const patientId = patient?.patientId || patient?.id;
+
+    if (!patientId) {
+      console.log(
+        "UserDashboard - Patient ID not available for prescriptions:",
+        patient
+      );
+      return;
+    }
+
+    setPrescriptionLoading(true);
+
+    try {
+      console.log(
+        "UserDashboard - Fetching prescriptions for patient:",
+        patientId
+      );
+
+      const response = await api.get(
+        `/api/prescriptions/patient/${patientId}`
+      );
+
+      const data = response.data;
+
+      console.log(
+        "UserDashboard - Prescriptions received:",
+        data
+      );
+
+      setPrescriptions(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error(
+        "Failed to load patient prescriptions:",
+        error
+      );
+
+      console.error(
+        "UserDashboard - Prescription API response:",
+        error?.response?.data
+      );
+
+      setPrescriptions([]);
+    } finally {
+      setPrescriptionLoading(false);
+    }
+  }, [patient]);
+
+  useEffect(() => {
+    fetchPatientPrescriptions();
+  }, [fetchPatientPrescriptions]);
+
+  // Confirm a pending appointment
+  const handleConfirmAppointment = async (appointment) => {
+    if (!appointment?.id) {
+      return;
+    }
+
+    try {
+      setConfirmingAppointmentId(appointment.id);
+      setAppointmentError(null);
+
+      await api.put(`/api/appointments/${appointment.id}`, {
+        ...appointment,
+        status: "confirmed",
+      });
+
+      await fetchPatientAppointments();
+    } catch (error) {
+      console.error("Failed to confirm appointment:", error);
+      console.error(
+        "UserDashboard - Confirm appointment API response:",
+        error?.response?.data
+      );
+      setAppointmentError(
+        error?.response?.data?.message ||
+          "Could not confirm the appointment. Please try again."
+      );
+    } finally {
+      setConfirmingAppointmentId(null);
+    }
+  };
+
   // Real appointments that are currently pending
   const pendingAppointments = appointments.filter(
     (appointment) =>
@@ -333,9 +404,24 @@ const UserDashboard = () => {
     }
   };
 
+  const getDoctorName = (doctorId) => {
+    return doctorId || "Doctor";
+  };
+
+  const getFirstMedicine = (prescription) => {
+    if (
+      !prescription?.medicines ||
+      prescription.medicines.length === 0
+    ) {
+      return null;
+    }
+
+    return prescription.medicines[0];
+  };
+
   const renderDashboard = () => {
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 w-full">
         {/* Welcome Section */}
         <div className="bg-gradient-to-r from-lime-500 to-lime-600 rounded-xl p-6 text-white">
           <h1 className="text-2xl font-bold mb-2">
@@ -372,26 +458,26 @@ const UserDashboard = () => {
               {pendingAppointments.map((appointment) => (
                 <div
                   key={appointment.id}
-                  className="bg-white border border-yellow-200 rounded-lg p-4"
+                  className="bg-white border border-yellow-200 rounded-xl p-4 sm:p-5"
                 >
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <h3 className="font-semibold text-gray-800">
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                    <div className="min-w-0">
+                      <h3 className="font-semibold text-gray-800 break-words">
                         {appointment.doctorName}
                       </h3>
 
-                      <p className="text-sm text-lime-600 font-medium">
+                      <p className="text-sm text-lime-600 font-medium mt-1">
                         {appointment.department}
                       </p>
                     </div>
 
-                    <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-700">
+                    <span className="inline-flex w-fit shrink-0 items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-700">
                       <Clock className="h-3 w-3" />
                       Pending
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-3 text-sm text-gray-600">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4 text-sm text-gray-600">
                     <div className="flex items-center gap-2">
                       <Calendar className="h-4 w-4 text-lime-600" />
                       {formatAppointmentDate(appointment.date)}
@@ -408,11 +494,24 @@ const UserDashboard = () => {
                     </div>
 
                     {appointment.reason && (
-                      <div className="flex items-center gap-2">
-                        <FileText className="h-4 w-4 text-lime-600" />
-                        {appointment.reason}
+                      <div className="flex items-start gap-2 min-w-0">
+                        <FileText className="h-4 w-4 shrink-0 text-lime-600 mt-0.5" />
+                        <span className="break-words">{appointment.reason}</span>
                       </div>
                     )}
+                  </div>
+
+                  <div className="mt-4 flex justify-end">
+                    <button
+                      type="button"
+                      onClick={() => handleConfirmAppointment(appointment)}
+                      disabled={confirmingAppointmentId === appointment.id}
+                      className="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2 rounded-lg bg-lime-600 text-white text-sm font-semibold hover:bg-lime-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                    >
+                      {confirmingAppointmentId === appointment.id
+                        ? "Confirming..."
+                        : "Confirm Appointment"}
+                    </button>
                   </div>
                 </div>
               ))}
@@ -580,173 +679,66 @@ const UserDashboard = () => {
 
         {/* Recent Prescriptions */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100">
-          <div className="p-6 border-b border-gray-100">
+          <div className="p-6 border-b border-gray-100 flex items-center justify-between">
             <h2 className="text-lg font-semibold text-gray-800">
               Recent Prescriptions
             </h2>
+
+            {prescriptionLoading && (
+              <span className="text-xs text-gray-400">
+                Updating...
+              </span>
+            )}
           </div>
 
           <div className="divide-y divide-gray-100">
-            {prescriptions.map((prescription) => (
-              <div
-                key={prescription.id}
-                className="p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="bg-blue-100 p-3 rounded-lg">
-                    <FileText className="h-5 w-5 text-blue-600" />
-                  </div>
+            {prescriptions.length > 0 ? (
+              prescriptions.slice(0, 5).map((prescription) => {
+                const medicine = getFirstMedicine(prescription);
 
-                  <div>
-                    <h3 className="font-semibold text-gray-800">
-                      {prescription.medicine} - {prescription.dosage}
-                    </h3>
-
-                    <p className="text-sm text-gray-500">
-                      {prescription.frequency}
-                    </p>
-
-                    <p className="text-sm text-gray-500">
-                      Prescribed by {prescription.doctor}
-                    </p>
-                  </div>
-                </div>
-
-                <span className="text-sm text-gray-500">
-                  {prescription.date}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  const renderAppointments = () => {
-    return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-800">
-              My Appointments
-            </h1>
-            <p className="text-gray-500 mt-1">
-              View your appointments scheduled by the hospital.
-            </p>
-          </div>
-
-          {appointmentLoading && (
-            <span className="text-sm text-gray-500">
-              Refreshing...
-            </span>
-          )}
-        </div>
-
-        {appointmentError && (
-          <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg p-4">
-            {appointmentError}
-          </div>
-        )}
-
-        {/* Notification Section */}
-        {pendingAppointments.length > 0 && (
-          <div className="bg-yellow-50 border border-yellow-300 rounded-xl p-5">
-            <div className="flex items-center gap-3 mb-4">
-              <Bell className="h-5 w-5 text-yellow-600" />
-
-              <div>
-                <h2 className="font-semibold text-yellow-800">
-                  New Appointment Notification
-                  {pendingAppointments.length > 1 ? "s" : ""}
-                </h2>
-
-                <p className="text-sm text-yellow-700">
-                  {pendingAppointments.length} pending appointment
-                  {pendingAppointments.length > 1 ? "s" : ""} assigned to you.
-                </p>
-              </div>
-            </div>
-
-            <div className="space-y-3">
-              {pendingAppointments.map((appointment) => (
-                <div
-                  key={appointment.id}
-                  className="bg-white rounded-lg border border-yellow-200 p-4"
-                >
-                  <div className="font-semibold text-gray-800">
-                    {appointment.doctorName}
-                  </div>
-
-                  <div className="text-sm text-gray-600 mt-2">
-                    {formatAppointmentDate(appointment.date)} •{" "}
-                    {formatAppointmentTime(appointment.time)}
-                  </div>
-
-                  <div className="text-sm text-gray-600 mt-1">
-                    {appointment.type}
-                  </div>
-
-                  {appointment.reason && (
-                    <div className="text-sm text-gray-600 mt-1">
-                      Reason: {appointment.reason}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Appointments List */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100">
-          {appointments.length === 0 ? (
-            <div className="p-10 text-center text-gray-500">
-              <Calendar className="h-12 w-12 mx-auto mb-3 text-gray-300" />
-              <p>No appointments found.</p>
-            </div>
-          ) : (
-            <div className="divide-y divide-gray-100">
-              {appointments.map((appointment) => (
-                <div key={appointment.id} className="p-6">
-                  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                    <div>
-                      <h3 className="font-semibold text-gray-800">
-                        {appointment.doctorName}
-                      </h3>
-
-                      <p className="text-sm text-lime-600 mt-1">
-                        {appointment.department}
-                      </p>
-
-                      <div className="text-sm text-gray-500 mt-2">
-                        {formatAppointmentDate(appointment.date)} •{" "}
-                        {formatAppointmentTime(appointment.time)}
+                return (
+                  <div
+                    key={prescription.id}
+                    className="p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="bg-blue-100 p-3 rounded-lg">
+                        <FileText className="h-5 w-5 text-blue-600" />
                       </div>
 
-                      <div className="text-sm text-gray-500 mt-1">
-                        {appointment.type}
-                      </div>
+                      <div>
+                        <h3 className="font-semibold text-gray-800">
+                          {medicine?.medicineName || "Prescription"}
+                        </h3>
 
-                      {appointment.reason && (
-                        <div className="text-sm text-gray-600 mt-2">
-                          Reason: {appointment.reason}
-                        </div>
-                      )}
+                        <p className="text-sm text-gray-500">
+                          {medicine?.dosage || "Dosage not specified"} •{" "}
+                          {medicine?.frequency || "Frequency not specified"}
+                        </p>
+
+                        <p className="text-sm text-gray-500">
+                          Diagnosis:{" "}
+                          {prescription.diagnosis || "Not specified"}
+                        </p>
+
+                        <p className="text-sm text-gray-500">
+                          Doctor: {getDoctorName(prescription.doctorId)}
+                        </p>
+                      </div>
                     </div>
 
-                    <span
-                      className={`px-3 py-1 rounded-full text-xs font-semibold capitalize ${getAppointmentStatusClass(
-                        appointment.status
-                      )}`}
-                    >
-                      {appointment.status}
+                    <span className="text-sm text-gray-500">
+                      {prescription.prescriptionDate}
                     </span>
                   </div>
-                </div>
-              ))}
-            </div>
-          )}
+                );
+              })
+            ) : (
+              <div className="p-6 text-center text-gray-500">
+                No prescriptions available.
+              </div>
+            )}
+          </div>
         </div>
       </div>
     );
@@ -810,45 +802,6 @@ const UserDashboard = () => {
               </p>
             </div>
           </div>
-        </div>
-      </div>
-    );
-  };
-
-  const renderPrescriptions = () => {
-    return (
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-800">
-            Prescriptions
-          </h1>
-          <p className="text-gray-500 mt-1">
-            View your current prescriptions.
-          </p>
-        </div>
-
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 divide-y">
-          {prescriptions.map((prescription) => (
-            <div key={prescription.id} className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-semibold text-gray-800">
-                    {prescription.medicine}
-                  </h3>
-
-                  <p className="text-sm text-gray-500">
-                    {prescription.dosage} • {prescription.frequency}
-                  </p>
-
-                  <p className="text-sm text-gray-500 mt-1">
-                    Doctor: {prescription.doctor}
-                  </p>
-                </div>
-
-                <FileText className="h-6 w-6 text-blue-500" />
-              </div>
-            </div>
-          ))}
         </div>
       </div>
     );
@@ -985,13 +938,17 @@ const UserDashboard = () => {
         return renderDashboard();
 
       case "appointments":
-        return renderAppointments();
+        return <Appointment />;
 
       case "profile":
         return renderProfile();
 
       case "prescriptions":
-        return renderPrescriptions();
+        return (
+          <Prescription
+            patientId={patient?.patientId || patient?.id}
+          />
+        );
 
       case "lab-results":
         return renderLabResults();
@@ -1008,7 +965,7 @@ const UserDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen bg-gray-50 flex overflow-x-hidden">
       <UserSidebar
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
@@ -1016,12 +973,8 @@ const UserDashboard = () => {
         setActiveModule={setActiveModule}
       />
 
-      <main
-        className={`flex-1 transition-all duration-300 ${
-          sidebarOpen ? "ml-64" : "ml-20"
-        }`}
-      >
-        <div className="p-6">
+      <main className="flex-1 min-w-0 transition-all duration-300">
+        <div className="w-full max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
           {renderModuleContent()}
         </div>
       </main>

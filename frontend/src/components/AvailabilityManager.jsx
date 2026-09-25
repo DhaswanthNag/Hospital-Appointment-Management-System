@@ -1,7 +1,12 @@
 import React, { useEffect, useState } from "react";
 import api from "../api/api";
+import PropTypes from "prop-types";
 
 const days = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+  
+AvailabilityManager.propTypes = {
+  doctorId: PropTypes.string,
+};
 
 export default function AvailabilityManager({ doctorId }){
   const [list, setList] = useState([]);

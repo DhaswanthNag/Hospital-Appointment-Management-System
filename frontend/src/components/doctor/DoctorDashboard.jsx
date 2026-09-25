@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import DoctorSidebar from "../../sidebar/DoctorSidebar";  
-import { Download, Eye, Pencil } from "lucide-react";
+// import { Download, Eye, Pencil } from "lucide-react";
+import { Download} from "lucide-react";
 import AppointmentManagement from './Appointment';
+import Prescription from './Prescription';
 
 
 const DoctorDashboard = () => {
@@ -28,12 +30,6 @@ const DoctorDashboard = () => {
     { id: 1, name: 'John Doe', age: 45, condition: 'Hypertension', lastVisit: '2 days ago', nextAppointment: '2025-11-28' },
     { id: 2, name: 'Jane Smith', age: 52, condition: 'Arrhythmia', lastVisit: '1 week ago', nextAppointment: '2025-11-30' },
     { id: 3, name: 'Mike Wilson', age: 38, condition: 'Chest Pain', lastVisit: '3 days ago', nextAppointment: '2025-11-25' }
-  ];
-
-  const prescriptions = [
-    { id: 1, patient: 'John Doe', medicine: 'Lisinopril 10mg', dosage: '1 tablet daily', duration: '30 days', date: '2025-11-20' },
-    { id: 2, patient: 'Jane Smith', medicine: 'Amiodarone 200mg', dosage: '1 tablet twice daily', duration: '60 days', date: '2025-11-19' },
-    { id: 3, patient: 'Mike Wilson', medicine: 'Aspirin 100mg', dosage: '1 tablet daily', duration: '90 days', date: '2025-11-18' }
   ];
 
   const labResults = [
@@ -107,116 +103,54 @@ const DoctorDashboard = () => {
     </div>
   );
 
-const renderPrescriptions = () => (
-  <div className="space-y-6">
-    <div className="bg-white rounded-lg shadow-sm p-6">
+  const renderPrescriptions = () => (
+    <Prescription />
+  );
 
-      {/* Title + Create Button Row */}
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-semibold text-gray-800">
-          Create and manage patient prescriptions
+  const renderLabResults = () => (
+    <div className="space-y-6">
+      <div className="bg-white rounded-lg shadow-sm p-6">
+        <h2 className="text-xl font-semibold text-gray-800 mb-6">
+          Request and view laboratory test results
         </h2>
 
-        <button className="px-4 py-2 bg-lime-500 text-white rounded-lg text-sm font-medium hover:bg-lime-600 transition">
-          + New Prescription
-        </button>
-      </div>
+        <div className="space-y-6">
+          {labResults.map((lab) => (
+            <div
+              key={lab.id}
+              className="border border-lime-400 rounded-xl p-6 shadow-sm bg-white hover:shadow-md transition"
+            >
+              <div className="flex justify-between items-center mb-4">
+                <div>
+                  <h3 className="font-semibold text-gray-900 text-lg">
+                    {lab.patient}
+                  </h3>
+                  <p className="text-gray-600">{lab.test}</p>
+                </div>
 
-      <div className="space-y-6">
-        {prescriptions.map((prescription) => (
-          <div
-            key={prescription.id}
-            className="border border-lime-400 rounded-xl p-6 shadow-sm bg-white hover:shadow-md transition"
-          >
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="font-semibold text-gray-900 text-lg">
-                {prescription.patient}
-              </h3>
+                <div className="flex items-center gap-3">
+                  {/* Download Button */}
+                  <button className="w-9 h-9 flex items-center justify-center rounded-lg border border-gray-300 text-lime-600 hover:bg-gray-100">
+                    <Download size={18} />
+                  </button>
 
-              <div className="flex items-center gap-3">
-                <span className="text-sm text-gray-600">
-                  {prescription.date}
-                </span>
-
-                {/* View Button */}
-                <button className="w-9 h-9 flex items-center justify-center rounded-lg border border-gray-300 text-lime-600 hover:bg-gray-100">
-                  <Eye size={18} />
-                </button>
-
-                {/* Edit Button */}
-                <button className="w-9 h-9 flex items-center justify-center rounded-lg bg-lime-500 text-white hover:bg-lime-600">
-                  <Pencil size={18} />
-                </button>
+                  {/* View Details Button */}
+                  <button className="px-4 py-2 bg-lime-500 text-white rounded-lg text-sm font-medium hover:bg-lime-600">
+                    View Details
+                  </button>
+                </div>
               </div>
-            </div>
 
-            <div className="space-y-1 text-gray-700">
-              <p>
-                <span className="font-medium">Medicine:</span>{" "}
-                {prescription.medicine}
-              </p>
-              <p>
-                <span className="font-medium">Dosage:</span>{" "}
-                {prescription.dosage}
-              </p>
-              <p>
-                <span className="font-medium">Duration:</span>{" "}
-                {prescription.duration}
+              <p className="text-gray-600 mb-1">Date: {lab.date}</p>
+              <p className="text-gray-600">
+                Results: {lab.results}
               </p>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </div>
-  </div>
-);
-
-
-
-const renderLabResults = () => (
-  <div className="space-y-6">
-    <div className="bg-white rounded-lg shadow-sm p-6">
-      <h2 className="text-xl font-semibold text-gray-800 mb-6">
-        Request and view laboratory test results
-      </h2>
-
-      <div className="space-y-6">
-        {labResults.map((lab) => (
-          <div
-            key={lab.id}
-            className="border border-lime-400 rounded-xl p-6 shadow-sm bg-white hover:shadow-md transition"
-          >
-            <div className="flex justify-between items-center mb-4">
-              <div>
-                <h3 className="font-semibold text-gray-900 text-lg">
-                  {lab.patient}
-                </h3>
-                <p className="text-gray-600">{lab.test}</p>
-              </div>
-
-              <div className="flex items-center gap-3">
-                {/* Download Button */}
-                <button className="w-9 h-9 flex items-center justify-center rounded-lg border border-gray-300 text-lime-600 hover:bg-gray-100">
-                  <Download size={18} />
-                </button>
-
-                {/* View Details Button */}
-                <button className="px-4 py-2 bg-lime-500 text-white rounded-lg text-sm font-medium hover:bg-lime-600">
-                  View Details
-                </button>
-              </div>
-            </div>
-
-            <p className="text-gray-600 mb-1">Date: {lab.date}</p>
-            <p className="text-gray-600">
-              Results: {lab.results}
-            </p>
-          </div>
-        ))}
-      </div>
-    </div>
-  </div>
-);
+  );
 
   const renderReports = () => (
     <div className="space-y-6">

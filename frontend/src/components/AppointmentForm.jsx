@@ -1,6 +1,11 @@
 import React, { useState } from 'react';
 import api from '../api/api';
 import { useNavigate } from 'react-router-dom';
+import PropTypes from "prop-types";
+
+AppointmentForm.propTypes = {
+  doctorId: PropTypes.string,
+};
 
 export default function AppointmentForm({ doctorId }) {
   const [form, setForm] = useState({ date: '', time: '' });

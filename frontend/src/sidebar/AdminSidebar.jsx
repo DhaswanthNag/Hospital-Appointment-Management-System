@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from "prop-types";
 import { PanelLeft } from "lucide-react";
 import { 
   MdDashboard, 
@@ -80,6 +81,13 @@ const AdminSidebar = ({ sidebarOpen, setSidebarOpen, activeModule, setActiveModu
       </nav>
     </div>
   );
+};
+
+AdminSidebar.propTypes = {
+  sidebarOpen: PropTypes.bool,
+  setSidebarOpen: PropTypes.func,
+  activeModule: PropTypes.string,
+  setActiveModule: PropTypes.func,
 };
 
 export default AdminSidebar;

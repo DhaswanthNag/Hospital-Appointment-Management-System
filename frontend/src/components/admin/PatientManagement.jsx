@@ -181,7 +181,7 @@ const PatientManagement = () => {
     if (window.confirm('Are you sure you want to delete this patient record?')) {
       try {
         await axios.delete(`${API_URL}/${patientId}`);
-        fetchPatients();
+        await fetchPatients();
       } catch (error) {
         console.error('Error deleting patient:', error);
         alert('Error deleting patient. See console for details.');
@@ -518,7 +518,7 @@ const PatientManagement = () => {
                         Edit
                       </button>
                       <button
-                        onClick={() => handleDelete(patient.id)}
+                        onClick={() => handleDelete(patient.patientId)}
                         className="text-red-600 hover:text-red-900 flex items-center gap-1 text-sm"
                       >
                         <Trash2 className="h-4 w-4" />
@@ -571,7 +571,7 @@ const PatientManagement = () => {
                       <Edit2 className="h-4 w-4" />
                     </button>
                     <button
-                      onClick={() => handleDelete(patient.id)}
+                      onClick={() => handleDelete(patient.patientId)}
                       className="text-red-600 hover:text-red-900 flex items-center gap-1 text-sm"
                     >
                       <Trash2 className="h-4 w-4" />

@@ -9,12 +9,12 @@ import java.util.Optional;
 
 @Repository
 public interface PatientRepository extends JpaRepository<Patient, Long> {
-    
+
     Optional<Patient> findByPatientId(String patientId);
-    
+
     List<Patient> findAllByOrderByPatientIdDesc();
-    
+
     void deleteByPatientId(String patientId);
-    
+
     List<Patient> findByStatus(String status);
 }

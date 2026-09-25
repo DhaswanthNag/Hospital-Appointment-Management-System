@@ -60,9 +60,12 @@ public class PatientServiceImpl implements PatientService {
     @Override
     public void deletePatient(String id) {
         Patient patient = patientRepository.findByPatientId(id).orElse(null);
-        if (patient != null) {
-            patientRepository.delete(patient);
+
+        if (patient == null) {
+            throw new RuntimeException("Patient not found with ID: " + id);
         }
+
+        patientRepository.delete(patient);
     }
 
     // ===============================================================

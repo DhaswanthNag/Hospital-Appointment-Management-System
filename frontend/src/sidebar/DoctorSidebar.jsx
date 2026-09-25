@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from "prop-types";
 import { PanelLeft } from "lucide-react";
 import { 
   MdDashboard,
@@ -60,6 +61,13 @@ const DoctorSidebar = ({ sidebarOpen, setSidebarOpen, activeModule, setActiveMod
       </nav>
     </div>
   );
+};
+
+DoctorSidebar.propTypes = {
+  sidebarOpen: PropTypes.bool,
+  setSidebarOpen: PropTypes.func,
+  activeModule: PropTypes.string,
+  setActiveModule: PropTypes.func,
 };
 
 export default DoctorSidebar;

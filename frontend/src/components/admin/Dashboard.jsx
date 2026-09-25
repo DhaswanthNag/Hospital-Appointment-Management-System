@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { MdNotificationsActive, MdPeople, MdSupervisedUserCircle, MdCalendarToday, MdPayment } from 'react-icons/md';
+import { MdPeople, MdSupervisedUserCircle, MdCalendarToday, MdPayment } from 'react-icons/md';
 import AdminSidebar from "../../sidebar/AdminSidebar";
 // import Rolemanagement from "./Rolemanagement";
 import DoctorManagement from "./DoctorManagement";
 import PatientManagement from "./PatientManagement";
 import AppointmentSchedulling from "./AppointmentSchedulling";
+import Prescription from "./Prescription";
 // import Billing from "./Billing";
 // import AdminProfilePage from './AdminProfilePage';
 
@@ -112,13 +113,25 @@ const Dashboard = () => {
         return <DoctorManagement />;
 
       case "Profile":
-        return <AdminProfilePage />;
+        return (
+          <div className="bg-white rounded-xl shadow-sm p-6">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">
+              Profile
+            </h3>
+            <p className="text-gray-600">
+              Admin profile module is under development.
+            </p>
+          </div>
+        );
 
       case "patient-management":
         return <PatientManagement />;
 
       case "appointment":
         return <AppointmentSchedulling />;
+
+      case "prescription":
+        return <Prescription />;
 
       // case "billing":
       //   return <Billing />;
