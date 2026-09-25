@@ -2,6 +2,8 @@ import React, { useState, useEffect, useContext, useCallback } from "react";
 import UserSidebar from "../../sidebar/UserSidebar";
 import Appointment from "./Appointment";
 import Prescription from "./Prescription";
+import Profile from "./Profile";
+// import LabResults from "./LabResults";
 // import PropTypes from "prop-types";
 import { AuthContext } from "../../context/AuthContext";
 // import { API_BASE_URL } from "../../config";
@@ -9,7 +11,7 @@ import api from "../../api/api";
 import {
   Calendar,
   Clock,
-  User,
+  // User,
   Bell,
   FileText,
   FlaskConical,
@@ -744,69 +746,6 @@ const UserDashboard = () => {
     );
   };
 
-  const renderProfile = () => {
-    return (
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-800">
-            My Profile
-          </h1>
-          <p className="text-gray-500 mt-1">
-            View your personal information.
-          </p>
-        </div>
-
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <div className="flex items-center gap-4 mb-6">
-            <div className="bg-lime-100 p-4 rounded-full">
-              <User className="h-8 w-8 text-lime-600" />
-            </div>
-
-            <div>
-              <h2 className="text-xl font-semibold text-gray-800">
-                {patient?.firstName} {patient?.lastName}
-              </h2>
-
-              <p className="text-gray-500">
-                Patient ID: {patient?.patientId || patient?.id || "N/A"}
-              </p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <p className="text-sm text-gray-500">Email</p>
-              <p className="font-medium text-gray-800">
-                {patient?.email || user?.email || "N/A"}
-              </p>
-            </div>
-
-            <div>
-              <p className="text-sm text-gray-500">Phone</p>
-              <p className="font-medium text-gray-800">
-                {patient?.phone || "N/A"}
-              </p>
-            </div>
-
-            <div>
-              <p className="text-sm text-gray-500">Date of Birth</p>
-              <p className="font-medium text-gray-800">
-                {patient?.dateOfBirth || "N/A"}
-              </p>
-            </div>
-
-            <div>
-              <p className="text-sm text-gray-500">Gender</p>
-              <p className="font-medium text-gray-800">
-                {patient?.gender || "N/A"}
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
   const renderLabResults = () => {
     return (
       <div className="space-y-6">
@@ -941,7 +880,7 @@ const UserDashboard = () => {
         return <Appointment />;
 
       case "profile":
-        return renderProfile();
+        return <Profile />;
 
       case "prescriptions":
         return (

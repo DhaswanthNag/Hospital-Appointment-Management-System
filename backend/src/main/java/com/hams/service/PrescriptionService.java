@@ -39,6 +39,7 @@ public class PrescriptionService {
 
     public Prescription updatePrescription(
             Long id,
+            String doctorId,
             Prescription prescription
     ) {
         Prescription existing =
@@ -48,8 +49,13 @@ public class PrescriptionService {
             return null;
         }
 
+        if (doctorId == null ||
+                existing.getDoctorId() == null ||
+                !existing.getDoctorId().equals(doctorId)) {
+            return null;
+        }
+
         existing.setPatientId(prescription.getPatientId());
-        existing.setDoctorId(prescription.getDoctorId());
         existing.setDiagnosis(prescription.getDiagnosis());
         existing.setInstructions(prescription.getInstructions());
         existing.setPrescriptionDate(prescription.getPrescriptionDate());
@@ -58,7 +64,21 @@ public class PrescriptionService {
         return prescriptionRepository.save(existing);
     }
 
-    public void deletePrescription(Long id) {
-        prescriptionRepository.deleteById(id);
+    public boolean deletePrescription(Long id, String doctorId) {
+        Prescription existing =
+                prescriptionRepository.findById(id).orElse(null);
+
+        if (existing == null) {
+            return false;
+        }
+
+        if (doctorId == null ||
+                existing.getDoctorId() == null ||
+                !existing.getDoctorId().equals(doctorId)) {
+            return false;
+        }
+
+        prescriptionRepository.delete(existing);
+        return true;
     }
 }

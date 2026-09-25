@@ -80,10 +80,15 @@ public class PrescriptionController {
     @PutMapping("/{id}")
     public ResponseEntity<Prescription> updatePrescription(
             @PathVariable Long id,
+            @RequestParam String doctorId,
             @RequestBody Prescription prescription
     ) {
         Prescription updated =
-                prescriptionService.updatePrescription(id, prescription);
+                prescriptionService.updatePrescription(
+                        id,
+                        doctorId,
+                        prescription
+                );
 
         if (updated == null) {
             return ResponseEntity.notFound().build();
@@ -96,9 +101,15 @@ public class PrescriptionController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletePrescription(
-            @PathVariable Long id
+            @PathVariable Long id,
+            @RequestParam String doctorId
     ) {
-        prescriptionService.deletePrescription(id);
+        boolean deleted =
+                prescriptionService.deletePrescription(id, doctorId);
+
+        if (!deleted) {
+            return ResponseEntity.notFound().build();
+        }
 
         return ResponseEntity.noContent().build();
     }

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback, useContext } from "react";
 import {
   MdAdd,
   MdDelete,
@@ -11,22 +11,21 @@ import {
   MdSave,
   MdVisibility,
 } from "react-icons/md";
+import { AuthContext } from "../../context/AuthContext";
 import api from "../../api/api";
 
 const Prescription = () => {
+  const { user } = useContext(AuthContext);
   const [doctors, setDoctors] = useState([]);
   const [patients, setPatients] = useState([]);
   const [prescriptions, setPrescriptions] = useState([]);
-
+  const [currentDoctor, setCurrentDoctor] = useState(null);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
-
   const [showForm, setShowForm] = useState(false);
   const [viewPrescription, setViewPrescription] = useState(null);
   const [editingId, setEditingId] = useState(null);
-
   const [searchTerm, setSearchTerm] = useState("");
-
   const emptyMedicine = {
     medicineName: "",
     dosage: "",
@@ -34,7 +33,6 @@ const Prescription = () => {
     duration: "",
     instructions: "",
   };
-
   const emptyForm = {
     patientId: "",
     doctorId: "",
@@ -43,43 +41,95 @@ const Prescription = () => {
     prescriptionDate: new Date().toISOString().split("T")[0],
     medicines: [{ ...emptyMedicine }],
   };
-
   const [formData, setFormData] = useState(emptyForm);
 
   // =========================================================
-  // LOAD DOCTORS, PATIENTS AND PRESCRIPTIONS
+  // GET LOGGED-IN DOCTOR
   // =========================================================
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = async () => {
-    setLoading(true);
-
+  const getLoggedInUser = useCallback(() => {
+    if (user?.email) {
+      return user;
+    }
     try {
-      const [doctorResponse, patientResponse, prescriptionResponse] =
-        await Promise.all([
-          api.get("/api/doctors"),
-          api.get("/api/patients"),
-          api.get("/api/prescriptions"),
-        ]);
+      const storedUser = localStorage.getItem("hams_user");
+      if (storedUser) {
+        return JSON.parse(storedUser);
+      }
+    } catch (error) {
+      console.error("Error reading hams_user:", error);
+    }
+    try {
+      const storedUser = localStorage.getItem("user");
+      if (storedUser) {
+        return JSON.parse(storedUser);
+      }
+    } catch (error) {
+      console.error("Error reading user:", error);
+    }
+    return null;
+  }, [user]);
 
-      setDoctors(doctorResponse.data || []);
+  const findCurrentDoctor = useCallback((doctorList) => {
+    const loggedInUser = getLoggedInUser();
+    if (!loggedInUser?.email) {
+      return null;
+    }
+    return (
+      doctorList.find(
+        (doctor) =>
+          doctor.email?.toLowerCase() ===
+          loggedInUser.email?.toLowerCase()
+      ) || null
+    );
+  }, [getLoggedInUser]);
+
+  // =========================================================
+  // LOAD DOCTORS, PATIENTS AND MY PRESCRIPTIONS
+  // =========================================================
+
+  const loadData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [doctorResponse, patientResponse] = await Promise.all([
+        api.get("/api/doctors"),
+        api.get("/api/patients"),
+      ]);
+      const doctorList = doctorResponse.data || [];
+      setDoctors(doctorList);
       setPatients(patientResponse.data || []);
-      setPrescriptions(prescriptionResponse.data || []);
+      const loggedInDoctor = findCurrentDoctor(doctorList);
+      if (!loggedInDoctor) {
+        setCurrentDoctor(null);
+        setPrescriptions([]);
+        alert("Unable to identify the logged-in doctor.");
+        return;
+      }
+      setCurrentDoctor(loggedInDoctor);
+      const prescriptionResponse = await api.get(
+        `/api/prescriptions/doctor/${loggedInDoctor.id}`
+      );
+      setPrescriptions(
+        (prescriptionResponse.data || []).filter(
+          (prescription) =>
+            String(prescription.doctorId) ===
+            String(loggedInDoctor.id)
+        )
+      );
     } catch (error) {
       console.error("Error loading prescription data:", error);
-
       if (error.response) {
         console.error("Backend response:", error.response.data);
       }
-
       alert("Unable to load prescription data.");
     } finally {
       setLoading(false);
     }
-  };
+  }, [findCurrentDoctor]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   // =========================================================
   // FORM HANDLERS
@@ -87,7 +137,6 @@ const Prescription = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-
     setFormData((prev) => ({
       ...prev,
       [name]: value,
@@ -97,12 +146,10 @@ const Prescription = () => {
   const handleMedicineChange = (index, field, value) => {
     setFormData((prev) => {
       const medicines = [...prev.medicines];
-
       medicines[index] = {
         ...medicines[index],
         [field]: value,
       };
-
       return {
         ...prev,
         medicines,
@@ -127,7 +174,6 @@ const Prescription = () => {
       if (prev.medicines.length === 1) {
         return prev;
       }
-
       return {
         ...prev,
         medicines: prev.medicines.filter((_, i) => i !== index),
@@ -140,21 +186,18 @@ const Prescription = () => {
   // =========================================================
 
   const validateForm = () => {
+    if (!currentDoctor?.id) {
+      alert("Unable to identify the logged-in doctor.");
+      return false;
+    }
     if (!formData.patientId) {
       alert("Please select a patient.");
       return false;
     }
-
-    if (!formData.doctorId) {
-      alert("Please select a doctor.");
-      return false;
-    }
-
     if (!formData.diagnosis.trim()) {
       alert("Please enter the diagnosis.");
       return false;
     }
-
     const invalidMedicine = formData.medicines.some(
       (medicine) =>
         !medicine.medicineName.trim() ||
@@ -162,15 +205,12 @@ const Prescription = () => {
         !medicine.frequency.trim() ||
         !medicine.duration.trim()
     );
-
     if (invalidMedicine) {
       alert(
         "Please complete Medicine Name, Dosage, Frequency and Duration for every medicine."
       );
-
       return false;
     }
-
     return true;
   };
 
@@ -180,56 +220,60 @@ const Prescription = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (!validateForm()) {
       return;
     }
-
     setSaving(true);
-
     try {
       let response;
-
+      const prescriptionData = {
+        ...formData,
+        doctorId: currentDoctor.id,
+      };
       if (editingId) {
         response = await api.put(
-          `/api/prescriptions/${editingId}`,
-          formData
+          `/api/prescriptions/${editingId}/doctor/${encodeURIComponent(
+            currentDoctor.id
+          )}`,
+          prescriptionData
         );
       } else {
         response = await api.post(
-          "/api/prescriptions",
-          formData
+          `/api/prescriptions/doctor/${encodeURIComponent(
+            currentDoctor.id
+          )}`,
+          prescriptionData
         );
       }
-
       const savedPrescription = response.data;
-
       if (editingId) {
         setPrescriptions((prev) =>
           prev.map((item) =>
             item.id === editingId ? savedPrescription : item
           )
         );
-
         alert("Prescription updated successfully.");
       } else {
         setPrescriptions((prev) => [
           savedPrescription,
           ...prev,
         ]);
-
         alert("Prescription created successfully.");
       }
-
       resetForm();
     } catch (error) {
       console.error("Error saving prescription:", error);
-
       if (error.response) {
         console.error("Backend response:", error.response.data);
       }
-
-      alert("Failed to save prescription.");
+      if (
+        error.response?.status === 403 ||
+        error.response?.status === 404
+      ) {
+        alert("You can only update prescriptions created by you.");
+      } else {
+        alert("Failed to save prescription.");
+      }
     } finally {
       setSaving(false);
     }
@@ -240,26 +284,44 @@ const Prescription = () => {
   // =========================================================
 
   const handleDelete = async (id) => {
+    const prescription = prescriptions.find(
+      (item) => item.id === id
+    );
+    if (
+      !currentDoctor?.id ||
+      !prescription ||
+      String(prescription.doctorId) !==
+        String(currentDoctor.id)
+    ) {
+      alert("You can only delete prescriptions created by you.");
+      return;
+    }
     const confirmed = window.confirm(
       "Are you sure you want to delete this prescription?"
     );
-
     if (!confirmed) {
       return;
     }
-
     try {
-      await api.delete(`/api/prescriptions/${id}`);
-
+      await api.delete(
+        `/api/prescriptions/${id}/doctor/${encodeURIComponent(
+          currentDoctor.id
+        )}`
+      );
       setPrescriptions((prev) =>
         prev.filter((item) => item.id !== id)
       );
-
       alert("Prescription deleted successfully.");
     } catch (error) {
       console.error("Error deleting prescription:", error);
-
-      alert("Failed to delete prescription.");
+      if (
+        error.response?.status === 403 ||
+        error.response?.status === 404
+      ) {
+        alert("You can only delete prescriptions created by you.");
+      } else {
+        alert("Failed to delete prescription.");
+      }
     }
   };
 
@@ -268,11 +330,18 @@ const Prescription = () => {
   // =========================================================
 
   const handleEdit = (prescription) => {
+    if (
+      !currentDoctor?.id ||
+      String(prescription.doctorId) !==
+        String(currentDoctor.id)
+    ) {
+      alert("You can only edit prescriptions created by you.");
+      return;
+    }
     setEditingId(prescription.id);
-
     setFormData({
       patientId: prescription.patientId || "",
-      doctorId: prescription.doctorId || "",
+      doctorId: currentDoctor.id,
       diagnosis: prescription.diagnosis || "",
       instructions: prescription.instructions || "",
       prescriptionDate:
@@ -289,7 +358,6 @@ const Prescription = () => {
             }))
           : [{ ...emptyMedicine }],
     });
-
     setShowForm(true);
     setViewPrescription(null);
   };
@@ -301,9 +369,9 @@ const Prescription = () => {
   const resetForm = () => {
     setFormData({
       ...emptyForm,
+      doctorId: currentDoctor?.id || "",
       medicines: [{ ...emptyMedicine }],
     });
-
     setEditingId(null);
     setShowForm(false);
   };
@@ -339,17 +407,14 @@ const Prescription = () => {
 
   const getPatientName = (patientId) => {
     const patient = getPatient(patientId);
-
     if (!patient) {
       return `Patient ${patientId}`;
     }
-
     if (patient.firstName || patient.lastName) {
       return `${patient.firstName || ""} ${
         patient.lastName || ""
       }`.trim();
     }
-
     return (
       patient.name ||
       patient.email ||
@@ -363,11 +428,9 @@ const Prescription = () => {
 
   const getDoctorName = (doctorId) => {
     const doctor = getDoctor(doctorId);
-
     if (!doctor) {
       return `Doctor ${doctorId}`;
     }
-
     return (
       doctor.name ||
       doctor.email ||
@@ -381,20 +444,23 @@ const Prescription = () => {
 
   const filteredPrescriptions = prescriptions.filter(
     (prescription) => {
+      if (
+        currentDoctor?.id &&
+        String(prescription.doctorId) !==
+          String(currentDoctor.id)
+      ) {
+        return false;
+      }
       const patientName = getPatientName(
         prescription.patientId
       ).toLowerCase();
-
       const doctorName = getDoctorName(
         prescription.doctorId
       ).toLowerCase();
-
       const diagnosis = (
         prescription.diagnosis || ""
       ).toLowerCase();
-
       const search = searchTerm.toLowerCase();
-
       return (
         patientName.includes(search) ||
         doctorName.includes(search) ||
@@ -411,18 +477,15 @@ const Prescription = () => {
   return (
     <div className="space-y-6">
       {/* HEADER */}
-
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold text-gray-800">
             Prescription Management
           </h2>
-
           <p className="text-gray-500 mt-1">
             Create and manage prescriptions for your patients.
           </p>
         </div>
-
         <div className="flex gap-3">
           <button
             onClick={loadData}
@@ -431,19 +494,18 @@ const Prescription = () => {
             <MdRefresh />
             Refresh
           </button>
-
           <button
             onClick={() => {
               setEditingId(null);
-
               setFormData({
                 ...emptyForm,
+                doctorId: currentDoctor?.id || "",
                 medicines: [{ ...emptyMedicine }],
               });
-
               setShowForm(true);
             }}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-lime-500 hover:bg-lime-600 text-white font-medium"
+            disabled={!currentDoctor}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-lime-500 hover:bg-lime-600 text-white font-medium disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <MdAdd />
             Create Prescription
@@ -452,33 +514,27 @@ const Prescription = () => {
       </div>
 
       {/* STAT CARDS */}
-
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
         <div className="bg-white rounded-xl shadow-sm p-5 border-l-4 border-lime-500">
           <p className="text-sm text-gray-500">
-            Total Prescriptions
+            My Prescriptions
           </p>
-
           <h3 className="text-2xl font-bold text-gray-800 mt-2">
             {prescriptions.length}
           </h3>
         </div>
-
         <div className="bg-white rounded-xl shadow-sm p-5 border-l-4 border-blue-500">
           <p className="text-sm text-gray-500">
             My Patients
           </p>
-
           <h3 className="text-2xl font-bold text-gray-800 mt-2">
             {patients.length}
           </h3>
         </div>
-
         <div className="bg-white rounded-xl shadow-sm p-5 border-l-4 border-purple-500">
           <p className="text-sm text-gray-500">
             Medicines Prescribed
           </p>
-
           <h3 className="text-2xl font-bold text-gray-800 mt-2">
             {prescriptions.reduce(
               (total, prescription) =>
@@ -491,11 +547,9 @@ const Prescription = () => {
       </div>
 
       {/* SEARCH */}
-
       <div className="bg-white rounded-xl shadow-sm p-4">
         <div className="relative">
           <MdSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xl" />
-
           <input
             type="text"
             placeholder="Search by patient, doctor, diagnosis or prescription ID..."
@@ -507,14 +561,12 @@ const Prescription = () => {
       </div>
 
       {/* PRESCRIPTION TABLE */}
-
       <div className="bg-white rounded-xl shadow-sm overflow-hidden">
         <div className="p-5 border-b">
           <h3 className="font-semibold text-gray-800">
-            Prescription History
+            My Prescription History
           </h3>
         </div>
-
         {loading ? (
           <div className="p-10 text-center text-gray-500">
             Loading prescriptions...
@@ -537,7 +589,6 @@ const Prescription = () => {
                   <th className="px-5 py-4">Actions</th>
                 </tr>
               </thead>
-
               <tbody>
                 {filteredPrescriptions.map((prescription) => (
                   <tr
@@ -547,78 +598,73 @@ const Prescription = () => {
                     <td className="px-5 py-4 font-medium text-gray-700">
                       #{prescription.id}
                     </td>
-
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-2">
                         <div className="w-9 h-9 rounded-full bg-purple-100 flex items-center justify-center text-purple-600">
                           <MdPerson />
                         </div>
-
                         <div>
                           <p className="font-medium text-gray-800">
                             {getPatientName(
                               prescription.patientId
                             )}
                           </p>
-
                           <p className="text-xs text-gray-400">
                             {prescription.patientId}
                           </p>
                         </div>
                       </div>
                     </td>
-
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-2">
                         <MdLocalHospital className="text-lime-600" />
-
                         <div>
                           <p className="font-medium text-gray-800">
                             {getDoctorName(
                               prescription.doctorId
                             )}
                           </p>
-
                           <p className="text-xs text-gray-400">
                             {prescription.doctorId}
                           </p>
                         </div>
                       </div>
                     </td>
-
                     <td className="px-5 py-4">
                       <span className="px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-sm">
                         {prescription.diagnosis ||
                           "Not specified"}
                       </span>
                     </td>
-
                     <td className="px-5 py-4 text-gray-600">
                       {prescription.prescriptionDate}
                     </td>
-
                     <td className="px-5 py-4">
                       {prescription.medicines?.length || 0}
                     </td>
-
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-2">
                         {/* VIEW */}
-
                         <button
-                          onClick={() =>
+                          onClick={() => {
+                            if (
+                              !currentDoctor?.id ||
+                              String(prescription.doctorId) !==
+                                String(currentDoctor.id)
+                            ) {
+                              alert("You can only view prescriptions created by you.");
+                              return;
+                            }
                             setViewPrescription(
                               prescription
-                            )
-                          }
+                            );
+                          }}
                           title="View"
                           className="p-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100"
                         >
                           <MdVisibility />
                         </button>
-
                         {/* EDIT */}
-
                         <button
                           onClick={() =>
                             handleEdit(prescription)
@@ -628,9 +674,7 @@ const Prescription = () => {
                         >
                           <MdEdit />
                         </button>
-
                         {/* DELETE */}
-
                         <button
                           onClick={() =>
                             handleDelete(
@@ -655,12 +699,10 @@ const Prescription = () => {
       {/* =====================================================
           CREATE / EDIT FORM
       ===================================================== */}
-
       {showForm && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-5xl max-h-[90vh] overflow-y-auto">
             {/* FORM HEADER */}
-
             <div className="flex items-center justify-between p-6 border-b">
               <div>
                 <h3 className="text-xl font-bold text-gray-800">
@@ -668,12 +710,10 @@ const Prescription = () => {
                     ? "Edit Prescription"
                     : "Create Prescription"}
                 </h3>
-
                 <p className="text-sm text-gray-500 mt-1">
                   Create a prescription for an existing patient.
                 </p>
               </div>
-
               <button
                 onClick={resetForm}
                 className="p-2 rounded-lg hover:bg-gray-100"
@@ -681,21 +721,17 @@ const Prescription = () => {
                 <MdClose className="text-xl" />
               </button>
             </div>
-
             <form
               onSubmit={handleSubmit}
               className="p-6 space-y-6"
             >
               {/* PATIENT + DOCTOR */}
-
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 {/* PATIENT */}
-
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Patient *
                   </label>
-
                   <select
                     name="patientId"
                     value={formData.patientId}
@@ -705,11 +741,9 @@ const Prescription = () => {
                     <option value="">
                       Select Patient
                     </option>
-
                     {patients.map((patient) => {
                       const patientId =
                         getPatientId(patient);
-
                       return (
                         <option
                           key={patientId}
@@ -724,42 +758,29 @@ const Prescription = () => {
                 </div>
 
                 {/* DOCTOR */}
-
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Doctor *
                   </label>
-
-                  <select
-                    name="doctorId"
-                    value={formData.doctorId}
-                    onChange={handleInputChange}
-                    className="w-full border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-lime-400"
-                  >
-                    <option value="">
-                      Select Doctor
-                    </option>
-
-                    {doctors.map((doctor) => (
-                      <option
-                        key={doctor.id}
-                        value={doctor.id}
-                      >
-                        {doctor.name} ({doctor.id})
-                      </option>
-                    ))}
-                  </select>
+                  <input
+                    type="text"
+                    value={
+                      currentDoctor
+                        ? `${currentDoctor.name || currentDoctor.email} (${currentDoctor.id})`
+                        : "Loading doctor..."
+                    }
+                    disabled
+                    className="w-full border border-gray-200 rounded-lg px-4 py-3 bg-gray-50 text-gray-600 cursor-not-allowed"
+                  />
                 </div>
               </div>
 
               {/* DIAGNOSIS + DATE */}
-
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Diagnosis *
                   </label>
-
                   <input
                     type="text"
                     name="diagnosis"
@@ -769,12 +790,10 @@ const Prescription = () => {
                     className="w-full border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-lime-400"
                   />
                 </div>
-
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Prescription Date
                   </label>
-
                   <input
                     type="date"
                     name="prescriptionDate"
@@ -786,19 +805,16 @@ const Prescription = () => {
               </div>
 
               {/* MEDICINES */}
-
               <div>
                 <div className="flex items-center justify-between mb-4">
                   <div>
                     <h4 className="font-semibold text-gray-800">
                       Medicines
                     </h4>
-
                     <p className="text-sm text-gray-500">
                       Add medicines prescribed to the patient.
                     </p>
                   </div>
-
                   <button
                     type="button"
                     onClick={addMedicine}
@@ -808,7 +824,6 @@ const Prescription = () => {
                     Add Medicine
                   </button>
                 </div>
-
                 <div className="space-y-4">
                   {formData.medicines.map(
                     (medicine, index) => (
@@ -820,7 +835,6 @@ const Prescription = () => {
                           <h5 className="font-medium text-gray-700">
                             Medicine {index + 1}
                           </h5>
-
                           {formData.medicines.length >
                             1 && (
                             <button
@@ -834,15 +848,12 @@ const Prescription = () => {
                             </button>
                           )}
                         </div>
-
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                           {/* MEDICINE NAME */}
-
                           <div>
                             <label className="block text-xs font-medium text-gray-600 mb-1">
                               Medicine Name *
                             </label>
-
                             <input
                               type="text"
                               value={
@@ -859,14 +870,11 @@ const Prescription = () => {
                               className="w-full border border-gray-200 rounded-lg px-3 py-2 bg-white"
                             />
                           </div>
-
                           {/* DOSAGE */}
-
                           <div>
                             <label className="block text-xs font-medium text-gray-600 mb-1">
                               Dosage *
                             </label>
-
                             <input
                               type="text"
                               value={medicine.dosage}
@@ -881,14 +889,11 @@ const Prescription = () => {
                               className="w-full border border-gray-200 rounded-lg px-3 py-2 bg-white"
                             />
                           </div>
-
                           {/* FREQUENCY */}
-
                           <div>
                             <label className="block text-xs font-medium text-gray-600 mb-1">
                               Frequency *
                             </label>
-
                             <input
                               type="text"
                               value={
@@ -905,14 +910,11 @@ const Prescription = () => {
                               className="w-full border border-gray-200 rounded-lg px-3 py-2 bg-white"
                             />
                           </div>
-
                           {/* DURATION */}
-
                           <div>
                             <label className="block text-xs font-medium text-gray-600 mb-1">
                               Duration *
                             </label>
-
                             <input
                               type="text"
                               value={medicine.duration}
@@ -928,14 +930,11 @@ const Prescription = () => {
                             />
                           </div>
                         </div>
-
                         {/* MEDICINE INSTRUCTIONS */}
-
                         <div className="mt-4">
                           <label className="block text-xs font-medium text-gray-600 mb-1">
                             Medicine Instructions
                           </label>
-
                           <input
                             type="text"
                             value={
@@ -959,12 +958,10 @@ const Prescription = () => {
               </div>
 
               {/* GENERAL INSTRUCTIONS */}
-
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   General Instructions
                 </label>
-
                 <textarea
                   name="instructions"
                   value={formData.instructions}
@@ -976,7 +973,6 @@ const Prescription = () => {
               </div>
 
               {/* BUTTONS */}
-
               <div className="flex justify-end gap-3 pt-4 border-t">
                 <button
                   type="button"
@@ -985,14 +981,12 @@ const Prescription = () => {
                 >
                   Cancel
                 </button>
-
                 <button
                   type="submit"
                   disabled={saving}
                   className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-lime-500 hover:bg-lime-600 text-white font-medium disabled:opacity-60"
                 >
                   <MdSave />
-
                   {saving
                     ? "Saving..."
                     : editingId
@@ -1008,23 +1002,19 @@ const Prescription = () => {
       {/* =====================================================
           VIEW PRESCRIPTION
       ===================================================== */}
-
       {viewPrescription && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
             {/* HEADER */}
-
             <div className="flex items-center justify-between p-6 border-b">
               <div>
                 <h3 className="text-xl font-bold text-gray-800">
                   Prescription #{viewPrescription.id}
                 </h3>
-
                 <p className="text-sm text-gray-500">
                   {viewPrescription.prescriptionDate}
                 </p>
               </div>
-
               <button
                 onClick={() =>
                   setViewPrescription(null)
@@ -1036,38 +1026,31 @@ const Prescription = () => {
             </div>
 
             {/* DETAILS */}
-
             <div className="p-6 space-y-6">
               {/* PATIENT / DOCTOR */}
-
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="bg-purple-50 rounded-xl p-4">
                   <p className="text-sm text-purple-600">
                     Patient
                   </p>
-
                   <h4 className="font-semibold text-gray-800 mt-1">
                     {getPatientName(
                       viewPrescription.patientId
                     )}
                   </h4>
-
                   <p className="text-sm text-gray-500">
                     ID: {viewPrescription.patientId}
                   </p>
                 </div>
-
                 <div className="bg-lime-50 rounded-xl p-4">
                   <p className="text-sm text-lime-700">
                     Doctor
                   </p>
-
                   <h4 className="font-semibold text-gray-800 mt-1">
                     {getDoctorName(
                       viewPrescription.doctorId
                     )}
                   </h4>
-
                   <p className="text-sm text-gray-500">
                     ID: {viewPrescription.doctorId}
                   </p>
@@ -1075,12 +1058,10 @@ const Prescription = () => {
               </div>
 
               {/* DIAGNOSIS */}
-
               <div>
                 <h4 className="font-semibold text-gray-800 mb-2">
                   Diagnosis
                 </h4>
-
                 <div className="bg-gray-50 rounded-lg p-4">
                   {viewPrescription.diagnosis ||
                     "Not specified"}
@@ -1088,12 +1069,10 @@ const Prescription = () => {
               </div>
 
               {/* MEDICINES */}
-
               <div>
                 <h4 className="font-semibold text-gray-800 mb-3">
                   Medicines
                 </h4>
-
                 {viewPrescription.medicines?.length >
                 0 ? (
                   <div className="space-y-3">
@@ -1108,12 +1087,10 @@ const Prescription = () => {
                               {index + 1}.{" "}
                               {medicine.medicineName}
                             </h5>
-
                             <span className="text-sm text-lime-700 bg-lime-50 px-2 py-1 rounded">
                               {medicine.duration}
                             </span>
                           </div>
-
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-3 text-sm">
                             <div>
                               <span className="text-gray-500">
@@ -1121,14 +1098,12 @@ const Prescription = () => {
                               </span>{" "}
                               {medicine.dosage}
                             </div>
-
                             <div>
                               <span className="text-gray-500">
                                 Frequency:
                               </span>{" "}
                               {medicine.frequency}
                             </div>
-
                             <div>
                               <span className="text-gray-500">
                                 Duration:
@@ -1136,7 +1111,6 @@ const Prescription = () => {
                               {medicine.duration}
                             </div>
                           </div>
-
                           {medicine.instructions && (
                             <p className="text-sm text-gray-600 mt-3">
                               <strong>
@@ -1157,13 +1131,11 @@ const Prescription = () => {
               </div>
 
               {/* GENERAL INSTRUCTIONS */}
-
               {viewPrescription.instructions && (
                 <div>
                   <h4 className="font-semibold text-gray-800 mb-2">
                     General Instructions
                   </h4>
-
                   <div className="bg-gray-50 rounded-lg p-4 text-gray-700">
                     {viewPrescription.instructions}
                   </div>
@@ -1171,7 +1143,6 @@ const Prescription = () => {
               )}
 
               {/* CLOSE */}
-
               <div className="flex justify-end pt-4 border-t">
                 <button
                   onClick={() =>

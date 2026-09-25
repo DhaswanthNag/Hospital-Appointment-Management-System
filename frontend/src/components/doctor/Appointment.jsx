@@ -793,5 +793,4 @@ const AppointmentManagement = () => {
     </div>
   );
 };
-
 export default AppointmentManagement;

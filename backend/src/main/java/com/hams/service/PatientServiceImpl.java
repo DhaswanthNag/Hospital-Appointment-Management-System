@@ -52,7 +52,6 @@ public class PatientServiceImpl implements PatientService {
         existing.setInsuranceProvider(newData.getInsuranceProvider());
         existing.setInsuranceId(newData.getInsuranceId());
         existing.setStatus(newData.getStatus());
-        existing.setMedicalHistory(newData.getMedicalHistory());
 
         return patientRepository.save(existing);
     }
@@ -73,7 +72,7 @@ public class PatientServiceImpl implements PatientService {
     // ===============================================================
     private String generatePatientId() {
         List<Patient> allPatients = patientRepository.findAllByOrderByPatientIdDesc();
-        
+
         if (allPatients.isEmpty()) {
             return "PAT001";
         }
