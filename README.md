@@ -1,10 +1,10 @@
-# 🏥 Hospital Appointment Management System
+🏥 Hospital Appointment Management System
 
 A full-stack **Hospital Appointment Management System (HAMS)** designed to streamline hospital operations by connecting **administrators, doctors, and patients** through a centralized web application.
 
 The system provides role-based dashboards for managing doctors, patients, appointments, prescriptions, billing, laboratory information, medical history, and other hospital workflows.
 
-## 📑 Table of Contents
+# 📑 Table of Contents
 
 - [Project Overview](#-project-overview)
 
