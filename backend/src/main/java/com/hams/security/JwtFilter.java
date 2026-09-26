@@ -24,7 +24,12 @@ public class JwtFilter extends OncePerRequestFilter {
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-        return request.getServletPath().startsWith("/api/auth/");
+
+        String path = request.getServletPath();
+
+        return path.startsWith("/api/auth/")
+                || path.equals("/api/lab-reports")
+                || path.startsWith("/api/lab-reports/");
     }
 
     @Override
@@ -41,11 +46,16 @@ public class JwtFilter extends OncePerRequestFilter {
             String token = authHeader.substring(7);
 
             try {
+
                 String email = jwtUtil.extractEmail(token);
 
-                if (email != null &&
-                        SecurityContextHolder.getContext().getAuthentication() == null &&
-                        jwtUtil.validateToken(token)) {
+                boolean valid = jwtUtil.validateToken(token);
+
+                if (email != null
+                        && SecurityContextHolder
+                        .getContext()
+                        .getAuthentication() == null
+                        && valid) {
 
                     UsernamePasswordAuthenticationToken authToken =
                             new UsernamePasswordAuthenticationToken(
@@ -55,14 +65,17 @@ public class JwtFilter extends OncePerRequestFilter {
                             );
 
                     authToken.setDetails(
-                            new WebAuthenticationDetailsSource().buildDetails(request)
+                            new WebAuthenticationDetailsSource()
+                                    .buildDetails(request)
                     );
 
-                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                    SecurityContextHolder
+                            .getContext()
+                            .setAuthentication(authToken);
                 }
 
             } catch (Exception ex) {
-                System.out.println("JWT ERROR: " + ex.getMessage());
+                // JWT validation failed. Continue the filter chain.
             }
         }
 

@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { MdPeople, MdSupervisedUserCircle, MdCalendarToday, MdPayment } from 'react-icons/md';
 import AdminSidebar from "../../sidebar/AdminSidebar";
-// import Rolemanagement from "./Rolemanagement";
 import DoctorManagement from "./DoctorManagement";
 import PatientManagement from "./PatientManagement";
 import AppointmentSchedulling from "./AppointmentSchedulling";
 import Prescription from "./Prescription";
 import Billingandpayment from "./Billingandpayment";
+import LabReports from "./LabReports";
 // import AdminProfilePage from './AdminProfilePage';
 import api from "../../api/api";
 
@@ -686,6 +686,9 @@ const Dashboard = () => {
 
       case "billing":
         return <Billingandpayment />;
+
+      case "laboratory-management":
+        return <LabReports />;
 
       default:
         return (

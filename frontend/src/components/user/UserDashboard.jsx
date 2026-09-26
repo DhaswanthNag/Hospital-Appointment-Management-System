@@ -4,7 +4,7 @@ import Appointment from "./Appointment";
 import Prescription from "./Prescription";
 import Profile from "./Profile";
 import Billingandpayment from "./Billingandpayment";
-// import LabResults from "./LabResults";
+import LabReports from "./LabReports";
 // import PropTypes from "prop-types";
 import { AuthContext } from "../../context/AuthContext";
 // import { API_BASE_URL } from "../../config";
@@ -39,6 +39,8 @@ const UserDashboard = () => {
 
   const [prescriptions, setPrescriptions] = useState([]);
   const [prescriptionLoading, setPrescriptionLoading] = useState(false);
+
+  const [labReports, setLabReports] = useState([]);
 
   // Existing dashboard data
   // Removed sample appointment data because dashboard now uses real backend appointment data.
@@ -246,6 +248,55 @@ const UserDashboard = () => {
     fetchPatientPrescriptions();
   }, [fetchPatientPrescriptions]);
 
+  // Fetch this patient's real laboratory reports
+  const fetchPatientLabReports = useCallback(async () => {
+    const patientId = patient?.patientId || patient?.id;
+
+    if (!patientId) {
+      console.log(
+        "UserDashboard - Patient ID not available for laboratory reports:",
+        patient
+      );
+      return;
+    }
+
+    try {
+      console.log(
+        "UserDashboard - Fetching laboratory reports for patient:",
+        patientId
+      );
+
+      const response = await api.get(
+        `/api/lab-reports/patient/${patientId}`
+      );
+
+      const data = response.data;
+
+      console.log(
+        "UserDashboard - Laboratory reports received:",
+        data
+      );
+
+      setLabReports(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error(
+        "Failed to load patient laboratory reports:",
+        error
+      );
+
+      console.error(
+        "UserDashboard - Laboratory report API response:",
+        error?.response?.data
+      );
+
+      setLabReports([]);
+    }
+  }, [patient]);
+
+  useEffect(() => {
+    fetchPatientLabReports();
+  }, [fetchPatientLabReports]);
+
   // Confirm a pending appointment
   const handleConfirmAppointment = async (appointment) => {
     if (!appointment?.id) {
@@ -436,7 +487,9 @@ const UserDashboard = () => {
                     {appointment.reason && (
                       <div className="flex items-start gap-2 min-w-0">
                         <FileText className="h-4 w-4 shrink-0 text-lime-600 mt-0.5" />
-                        <span className="break-words">{appointment.reason}</span>
+                        <span className="break-words">
+                          {appointment.reason}
+                        </span>
                       </div>
                     )}
                   </div>
@@ -445,7 +498,9 @@ const UserDashboard = () => {
                     <button
                       type="button"
                       onClick={() => handleConfirmAppointment(appointment)}
-                      disabled={confirmingAppointmentId === appointment.id}
+                      disabled={
+                        confirmingAppointmentId === appointment.id
+                      }
                       className="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2 rounded-lg bg-lime-600 text-white text-sm font-semibold hover:bg-lime-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                     >
                       {confirmingAppointmentId === appointment.id
@@ -471,7 +526,10 @@ const UserDashboard = () => {
           <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500">Upcoming Appointments</p>
+                <p className="text-sm text-gray-500">
+                  Upcoming Appointments
+                </p>
+
                 <p className="text-2xl font-bold text-gray-800 mt-1">
                   {activeAppointments.length}
                 </p>
@@ -486,7 +544,10 @@ const UserDashboard = () => {
           <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500">Prescriptions</p>
+                <p className="text-sm text-gray-500">
+                  Prescriptions
+                </p>
+
                 <p className="text-2xl font-bold text-gray-800 mt-1">
                   {prescriptions.length}
                 </p>
@@ -501,9 +562,12 @@ const UserDashboard = () => {
           <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500">Lab Results</p>
+                <p className="text-sm text-gray-500">
+                  Lab Results
+                </p>
+
                 <p className="text-2xl font-bold text-gray-800 mt-1">
-                  0
+                  {labReports.length}
                 </p>
               </div>
 
@@ -516,7 +580,10 @@ const UserDashboard = () => {
           <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500">Medical History</p>
+                <p className="text-sm text-gray-500">
+                  Medical History
+                </p>
+
                 <p className="text-2xl font-bold text-gray-800 mt-1">
                   {completedAppointments.length}
                 </p>
@@ -585,6 +652,7 @@ const UserDashboard = () => {
             ) : (
               <div className="p-8 text-center">
                 <Calendar className="h-10 w-10 text-gray-300 mx-auto" />
+
                 <p className="text-gray-500 mt-2">
                   No appointments available.
                 </p>
@@ -628,17 +696,24 @@ const UserDashboard = () => {
                         </h3>
 
                         <p className="text-sm text-gray-500">
-                          {medicine?.dosage || "Dosage not specified"} •{" "}
-                          {medicine?.frequency || "Frequency not specified"}
+                          {medicine?.dosage ||
+                            "Dosage not specified"}{" "}
+                          •{" "}
+                          {medicine?.frequency ||
+                            "Frequency not specified"}
                         </p>
 
                         <p className="text-sm text-gray-500">
                           Diagnosis:{" "}
-                          {prescription.diagnosis || "Not specified"}
+                          {prescription.diagnosis ||
+                            "Not specified"}
                         </p>
 
                         <p className="text-sm text-gray-500">
-                          Doctor: {getDoctorName(prescription.doctorId)}
+                          Doctor:{" "}
+                          {getDoctorName(
+                            prescription.doctorId
+                          )}
                         </p>
                       </div>
                     </div>
@@ -662,28 +737,9 @@ const UserDashboard = () => {
 
   const renderLabResults = () => {
     return (
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-800">
-            Lab Results
-          </h1>
-          <p className="text-gray-500 mt-1">
-            View your available laboratory results.
-          </p>
-        </div>
-
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center">
-          <FlaskConical className="w-12 h-12 text-gray-300 mx-auto" />
-
-          <h3 className="font-semibold text-gray-700 mt-3">
-            No laboratory results available
-          </h3>
-
-          <p className="text-sm text-gray-500 mt-1">
-            Laboratory results will appear here when the lab-results backend module is connected.
-          </p>
-        </div>
-      </div>
+      <LabReports
+        patientId={patient?.patientId || patient?.id}
+      />
     );
   };
 
@@ -702,6 +758,7 @@ const UserDashboard = () => {
           <h1 className="text-2xl font-bold text-gray-800">
             Medical History
           </h1>
+
           <p className="text-gray-500 mt-1">
             View your previous visits.
           </p>
@@ -718,7 +775,8 @@ const UserDashboard = () => {
                     </h3>
 
                     <p className="text-sm text-gray-500">
-                      {visit.department || "Department not specified"}
+                      {visit.department ||
+                        "Department not specified"}
                     </p>
 
                     <p className="text-sm text-gray-500 mt-1">

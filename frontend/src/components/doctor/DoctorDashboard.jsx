@@ -7,11 +7,12 @@ import React, {
 } from 'react';
 import DoctorSidebar from "../../sidebar/DoctorSidebar";
 // import { Download, Eye, Pencil } from "lucide-react";
-import { Calendar, Users, Clock, CheckCircle, User, RefreshCw, Stethoscope, History } from "lucide-react";
+import { Calendar, Users, Clock, CheckCircle, User, RefreshCw, History } from "lucide-react";
 import AppointmentManagement from './Appointment';
 import Prescription from './Prescription';
 import PatientManagement from './PatientManagement';
 import Billingandpayment from './Billingandpayment';
+import LabReports from "./LabReports";
 import { AuthContext } from "../../context/AuthContext";
 import api from "../../api/api";
 
@@ -756,28 +757,6 @@ const DoctorDashboard = () => {
     <Prescription />
   );
 
-  const renderLabResults = () => (
-    <div className="space-y-6">
-      <div className="bg-white rounded-lg shadow-sm p-6">
-        <h2 className="text-xl font-semibold text-gray-800 mb-6">
-          Request and view laboratory test results
-        </h2>
-
-        <div className="border border-gray-200 rounded-xl p-8 text-center">
-          <Stethoscope className="h-10 w-10 text-gray-300 mx-auto" />
-
-          <h3 className="font-semibold text-gray-700 mt-3">
-            No laboratory results available
-          </h3>
-
-          <p className="text-sm text-gray-500 mt-1">
-            Laboratory results will appear here when the lab-results backend module is connected.
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-
   const renderMedicalHistory = () => (
     <div className="space-y-6">
       <div className="bg-white rounded-lg shadow-sm p-6">
@@ -1149,8 +1128,8 @@ const DoctorDashboard = () => {
       case 'billing':
         return <Billingandpayment />;
 
-      case 'lab-results':
-        return renderLabResults();
+case 'lab-management':
+  return <LabReports doctorId={doctor?.id} />;
 
       case 'medical-history':
         return renderMedicalHistory();

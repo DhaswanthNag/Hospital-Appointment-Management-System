@@ -20,7 +20,7 @@ const DoctorSidebar = ({ sidebarOpen, setSidebarOpen, activeModule, setActiveMod
     { id: 'my-patients', name: 'My Patients', icon: MdPeople },
     { id: 'prescriptions', name: 'Prescriptions', icon: MdMedicalServices },
     { id: 'billing', name: 'Billing & Payment', icon: MdPayment },
-    { id: 'lab-results', name: 'Lab Results', icon: MdScience },
+    { id: 'lab-management', name: 'Lab Results', icon: MdScience },
     { id: 'medical-history', name: 'Medical History', icon: MdHistory },
     { id: 'reports', name: 'Reports', icon: MdAnalytics },
   ];

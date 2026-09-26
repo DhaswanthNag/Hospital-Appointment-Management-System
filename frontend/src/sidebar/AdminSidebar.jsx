@@ -24,7 +24,7 @@ const AdminSidebar = ({ sidebarOpen, setSidebarOpen, activeModule, setActiveModu
     { id: 'appointment', name: 'Appointment', icon: MdCalendarToday, admin: true, doctor: true, patient: true },
     { id: 'prescription', name: 'Prescription', icon: MdMedicalServices, admin: true, doctor: true, patient: true },
     { id: 'billing', name: 'Billing & Payment', icon: MdPayment, admin: true, doctor: false, patient: true },
-    { id: 'laboratory', name: 'Laboratory Management', icon: MdScience, admin: true, doctor: true, patient: true },
+    { id: 'laboratory-management', name: 'Laboratory Management', icon: MdScience, admin: true, doctor: true, patient: true },
     { id: 'medical-records', name: 'Medical Records', icon: MdDescription, admin: true, doctor: true, patient: true },
     { id: 'reports', name: 'Reports & Analytics', icon: MdAnalytics, admin: true, doctor: true, patient: true },
     { id: 'notifications', name: 'Notifications / Alerts', icon: MdNotificationsActive, admin: true, doctor: true, patient: true },

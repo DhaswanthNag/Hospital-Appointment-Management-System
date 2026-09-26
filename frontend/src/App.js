@@ -1,5 +1,3 @@
-// App.js (FULLY FIXED WITH ROLE BASED ROUTING)
-
 import React from "react";
 import { Routes, Route } from "react-router-dom";
 
@@ -27,6 +25,7 @@ import DoctorDashboard from "./components/doctor/DoctorDashboard";
 
 // User Components
 import UserDashboard from "./components/user/UserDashboard";
+import LabReports from "./components/user/LabReports";
 import UserSidebar from "./sidebar/UserSidebar";
 
 // Common Components
@@ -47,7 +46,10 @@ export default function App() {
         <Route path="/doctors" element={<DoctorList />} />
         <Route path="/doctors/add" element={<DoctorForm />} />
         <Route path="/doctors/:id" element={<DoctorProfile />} />
-        <Route path="/doctors/:id/edit" element={<DoctorForm edit={true} />} />
+        <Route
+          path="/doctors/:id/edit"
+          element={<DoctorForm edit={true} />}
+        />
 
         {/* Appointments (Public book, but user should login to view own appointments) */}
         <Route path="/book/:doctorId" element={<AppointmentBooking />} />
@@ -132,6 +134,16 @@ export default function App() {
           element={
             <ProtectedRoute allowedRoles={["patient", "user"]}>
               <UserSidebar />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* User / Patient Laboratory Reports */}
+        <Route
+          path="/user/lab-reports"
+          element={
+            <ProtectedRoute allowedRoles={["patient", "user"]}>
+              <LabReports />
             </ProtectedRoute>
           }
         />
