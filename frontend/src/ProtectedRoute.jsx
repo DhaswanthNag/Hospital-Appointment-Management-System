@@ -13,8 +13,15 @@ ProtectedRoute.propTypes = {
  * (e.g. 'admin', 'doctor', 'patient')
  */
 export default function ProtectedRoute({ children, allowedRoles = [] }) {
-  const token = localStorage.getItem("hams_token");          // ✔ fixed key
-  const userStr = localStorage.getItem("hams_user");         // ✔ fixed key
+  // Use sessionStorage for the current login session
+  // Keep localStorage as fallback for existing stored sessions
+  const token =
+    sessionStorage.getItem("hams_token") ||
+    localStorage.getItem("hams_token");
+
+  const userStr =
+    sessionStorage.getItem("hams_user") ||
+    localStorage.getItem("hams_user");
 
   // If not logged in → redirect
   if (!token || !userStr) {
@@ -24,11 +31,15 @@ export default function ProtectedRoute({ children, allowedRoles = [] }) {
   try {
     const user = JSON.parse(userStr);
 
-    // Backend already returns a plain string role (e.g. "admin")
-    const role = user.role;
+    // Backend returns role as a string (e.g. "admin")
+    // Also support an object role just in case the backend returns { name: "admin" }
+    const role =
+      typeof user.role === "object"
+        ? user.role?.name
+        : user.role;
 
     // If no role OR role not allowed → redirect
-    if (!role || !allowedRoles.includes(role)) {
+    if (!role || !allowedRoles.includes(role.toLowerCase())) {
       return <Navigate to="/login" replace />;
     }
 
@@ -36,7 +47,13 @@ export default function ProtectedRoute({ children, allowedRoles = [] }) {
     return children;
 
   } catch (error) {
-    // If corrupted localStorage → redirect
+    // If corrupted storage → redirect
+    sessionStorage.removeItem("hams_user");
+    sessionStorage.removeItem("hams_token");
+
+    localStorage.removeItem("hams_user");
+    localStorage.removeItem("hams_token");
+
     return <Navigate to="/login" replace />;
   }
 }

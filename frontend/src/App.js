@@ -42,12 +42,8 @@ export default function App() {
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/admin" element={<Dashboard />} />
-        <Route path="/doctor/dashboard" element={<DoctorDashboard />} />
-        <Route path="/user/dashboard" element={<UserDashboard />} />
 
         {/* Doctors (Public) */}
-        <Route path="/doctor" element={<DoctorDashboard />} />
         <Route path="/doctors" element={<DoctorList />} />
         <Route path="/doctors/add" element={<DoctorForm />} />
         <Route path="/doctors/:id" element={<DoctorProfile />} />
@@ -55,14 +51,6 @@ export default function App() {
 
         {/* Appointments (Public book, but user should login to view own appointments) */}
         <Route path="/book/:doctorId" element={<AppointmentBooking />} />
-        <Route
-          path="/appointments"
-          element={
-            <ProtectedRoute allowedRoles={["patient", "user"]}>
-              <PatientAppointments />
-            </ProtectedRoute>
-          }
-        />
 
         {/* ---------------------- ADMIN PROTECTED ROUTES ----------------------- */}
         <Route
@@ -94,6 +82,15 @@ export default function App() {
 
         {/* ---------------------- DOCTOR PROTECTED ROUTES ----------------------- */}
         <Route
+          path="/doctor"
+          element={
+            <ProtectedRoute allowedRoles={["doctor"]}>
+              <DoctorDashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
           path="/doctor/dashboard"
           element={
             <ProtectedRoute allowedRoles={["doctor"]}>
@@ -112,6 +109,15 @@ export default function App() {
         />
 
         {/* ---------------------- USER / PATIENT PROTECTED ROUTES ----------------------- */}
+        <Route
+          path="/appointments"
+          element={
+            <ProtectedRoute allowedRoles={["patient", "user"]}>
+              <PatientAppointments />
+            </ProtectedRoute>
+          }
+        />
+
         <Route
           path="/user/dashboard"
           element={

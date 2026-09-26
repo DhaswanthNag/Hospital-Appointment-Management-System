@@ -1,13 +1,15 @@
 // src/pages/login.jsx
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import api from "../api/api";
+import { AuthContext } from "../context/AuthContext";
 
 export default function Login() {
   const [form, setForm] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
+  const { login } = useContext(AuthContext);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -29,13 +31,12 @@ export default function Login() {
 
       const data = response.data;
 
-      if (!data || !data.token) {
+      if (!data || !data.token || !data.user) {
         setError("Invalid response from server");
         return;
       }
 
-      localStorage.setItem("hams_token", data.token);
-      localStorage.setItem("hams_user", JSON.stringify(data.user));
+      login(data.user, data.token);
 
       const role =
         data.user.role?.name || data.user.role || "patient";

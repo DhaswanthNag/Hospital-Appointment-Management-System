@@ -6,7 +6,7 @@ import DoctorManagement from "./DoctorManagement";
 import PatientManagement from "./PatientManagement";
 import AppointmentSchedulling from "./AppointmentSchedulling";
 import Prescription from "./Prescription";
-// import Billing from "./Billing";
+import Billingandpayment from "./Billingandpayment";
 // import AdminProfilePage from './AdminProfilePage';
 import api from "../../api/api";
 
@@ -344,9 +344,9 @@ const Dashboard = () => {
     }
   };
 
-  // -------------------------
+
   // SWITCH CASE MODULE RENDERING
-  // -------------------------
+  
   const renderContent = () => {
     switch (activeModule) {
       case "dashboard":
@@ -684,8 +684,8 @@ const Dashboard = () => {
       case "prescription":
         return <Prescription />;
 
-      // case "billing":
-      //   return <Billing />;
+      case "billing":
+        return <Billingandpayment />;
 
       default:
         return (

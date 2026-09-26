@@ -3,6 +3,7 @@ import UserSidebar from "../../sidebar/UserSidebar";
 import Appointment from "./Appointment";
 import Prescription from "./Prescription";
 import Profile from "./Profile";
+import Billingandpayment from "./Billingandpayment";
 // import LabResults from "./LabResults";
 // import PropTypes from "prop-types";
 import { AuthContext } from "../../context/AuthContext";
@@ -40,79 +41,10 @@ const UserDashboard = () => {
   const [prescriptionLoading, setPrescriptionLoading] = useState(false);
 
   // Existing dashboard data
-  const upcomingAppointments = [
-    {
-      id: 1,
-      doctor: "Dr. Sarah Johnson",
-      department: "Cardiology",
-      date: "2024-03-20",
-      time: "10:00 AM",
-      type: "Consultation",
-      status: "Confirmed"
-    },
-    {
-      id: 2,
-      doctor: "Dr. Michael Chen",
-      department: "Neurology",
-      date: "2024-03-22",
-      time: "02:30 PM",
-      type: "Follow-up",
-      status: "Pending"
-    }
-  ];
-
-  const labResults = [
-    {
-      id: 1,
-      test: "Complete Blood Count",
-      date: "2024-03-15",
-      status: "Available",
-      doctor: "Dr. Sarah Johnson"
-    },
-    {
-      id: 2,
-      test: "Lipid Profile",
-      date: "2024-03-12",
-      status: "Available",
-      doctor: "Dr. Michael Chen"
-    }
-  ];
-
-  const visitHistory = [
-    {
-      id: 1,
-      doctor: "Dr. Sarah Johnson",
-      department: "Cardiology",
-      date: "2024-03-10",
-      diagnosis: "Hypertension",
-      status: "Completed"
-    },
-    {
-      id: 2,
-      doctor: "Dr. Michael Chen",
-      department: "Neurology",
-      date: "2024-03-05",
-      diagnosis: "Migraine",
-      status: "Completed"
-    }
-  ];
-
-  const billingData = [
-    {
-      id: 1,
-      description: "Consultation - Cardiology",
-      amount: "$150",
-      date: "2024-03-10",
-      status: "Paid"
-    },
-    {
-      id: 2,
-      description: "Laboratory Tests",
-      amount: "$85",
-      date: "2024-03-12",
-      status: "Paid"
-    }
-  ];
+  // Removed sample appointment data because dashboard now uses real backend appointment data.
+  // Removed sample lab result data because there is no connected lab-result backend yet.
+  // Removed sample billing data because billing now uses the real backend billing API.
+  // Visit history now uses real completed appointments from the backend.
 
   // Step 1: resolve the logged-in patient's real patientId (PAT00x) from email
   useEffect(() => {
@@ -357,6 +289,12 @@ const UserDashboard = () => {
       appointment.status?.toLowerCase() !== "cancelled"
   );
 
+  // Real completed appointments used as medical history
+  const completedAppointments = appointments.filter(
+    (appointment) =>
+      appointment.status?.toLowerCase() === "completed"
+  );
+
   const formatAppointmentDate = (dateString) => {
     if (!dateString) return "";
 
@@ -535,9 +473,7 @@ const UserDashboard = () => {
               <div>
                 <p className="text-sm text-gray-500">Upcoming Appointments</p>
                 <p className="text-2xl font-bold text-gray-800 mt-1">
-                  {activeAppointments.length > 0
-                    ? activeAppointments.length
-                    : upcomingAppointments.length}
+                  {activeAppointments.length}
                 </p>
               </div>
 
@@ -567,7 +503,7 @@ const UserDashboard = () => {
               <div>
                 <p className="text-sm text-gray-500">Lab Results</p>
                 <p className="text-2xl font-bold text-gray-800 mt-1">
-                  {labResults.length}
+                  0
                 </p>
               </div>
 
@@ -580,9 +516,9 @@ const UserDashboard = () => {
           <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500">Visit History</p>
+                <p className="text-sm text-gray-500">Medical History</p>
                 <p className="text-2xl font-bold text-gray-800 mt-1">
-                  {visitHistory.length}
+                  {completedAppointments.length}
                 </p>
               </div>
 
@@ -608,74 +544,52 @@ const UserDashboard = () => {
           </div>
 
           <div className="divide-y divide-gray-100">
-            {activeAppointments.length > 0
-              ? activeAppointments.slice(0, 5).map((appointment) => (
-                  <div
-                    key={appointment.id}
-                    className="p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="bg-lime-100 p-3 rounded-lg">
-                        <Calendar className="h-5 w-5 text-lime-600" />
-                      </div>
-
-                      <div>
-                        <h3 className="font-semibold text-gray-800">
-                          {appointment.doctorName}
-                        </h3>
-
-                        <p className="text-sm text-gray-500">
-                          {appointment.department}
-                        </p>
-
-                        <p className="text-sm text-gray-500 mt-1">
-                          {formatAppointmentDate(appointment.date)} •{" "}
-                          {formatAppointmentTime(appointment.time)}
-                        </p>
-                      </div>
+            {activeAppointments.length > 0 ? (
+              activeAppointments.slice(0, 5).map((appointment) => (
+                <div
+                  key={appointment.id}
+                  className="p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="bg-lime-100 p-3 rounded-lg">
+                      <Calendar className="h-5 w-5 text-lime-600" />
                     </div>
 
-                    <div className="flex items-center gap-3">
-                      <span
-                        className={`px-3 py-1 rounded-full text-xs font-semibold capitalize ${getAppointmentStatusClass(
-                          appointment.status
-                        )}`}
-                      >
-                        {appointment.status}
-                      </span>
+                    <div>
+                      <h3 className="font-semibold text-gray-800">
+                        {appointment.doctorName}
+                      </h3>
+
+                      <p className="text-sm text-gray-500">
+                        {appointment.department}
+                      </p>
+
+                      <p className="text-sm text-gray-500 mt-1">
+                        {formatAppointmentDate(appointment.date)} •{" "}
+                        {formatAppointmentTime(appointment.time)}
+                      </p>
                     </div>
                   </div>
-                ))
-              : upcomingAppointments.map((appointment) => (
-                  <div
-                    key={appointment.id}
-                    className="p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="bg-lime-100 p-3 rounded-lg">
-                        <Calendar className="h-5 w-5 text-lime-600" />
-                      </div>
 
-                      <div>
-                        <h3 className="font-semibold text-gray-800">
-                          {appointment.doctor}
-                        </h3>
-
-                        <p className="text-sm text-gray-500">
-                          {appointment.department}
-                        </p>
-
-                        <p className="text-sm text-gray-500 mt-1">
-                          {appointment.date} • {appointment.time}
-                        </p>
-                      </div>
-                    </div>
-
-                    <span className="px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">
+                  <div className="flex items-center gap-3">
+                    <span
+                      className={`px-3 py-1 rounded-full text-xs font-semibold capitalize ${getAppointmentStatusClass(
+                        appointment.status
+                      )}`}
+                    >
                       {appointment.status}
                     </span>
                   </div>
-                ))}
+                </div>
+              ))
+            ) : (
+              <div className="p-8 text-center">
+                <Calendar className="h-10 w-10 text-gray-300 mx-auto" />
+                <p className="text-gray-500 mt-2">
+                  No appointments available.
+                </p>
+              </div>
+            )}
           </div>
         </div>
 
@@ -758,30 +672,16 @@ const UserDashboard = () => {
           </p>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 divide-y">
-          {labResults.map((result) => (
-            <div key={result.id} className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-semibold text-gray-800">
-                    {result.test}
-                  </h3>
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center">
+          <FlaskConical className="w-12 h-12 text-gray-300 mx-auto" />
 
-                  <p className="text-sm text-gray-500">
-                    Date: {result.date}
-                  </p>
+          <h3 className="font-semibold text-gray-700 mt-3">
+            No laboratory results available
+          </h3>
 
-                  <p className="text-sm text-gray-500">
-                    Doctor: {result.doctor}
-                  </p>
-                </div>
-
-                <span className="px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">
-                  {result.status}
-                </span>
-              </div>
-            </div>
-          ))}
+          <p className="text-sm text-gray-500 mt-1">
+            Laboratory results will appear here when the lab-results backend module is connected.
+          </p>
         </div>
       </div>
     );
@@ -789,53 +689,18 @@ const UserDashboard = () => {
 
   const renderPayments = () => {
     return (
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-800">
-            Payments & Billing
-          </h1>
-          <p className="text-gray-500 mt-1">
-            View your billing and payment history.
-          </p>
-        </div>
-
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 divide-y">
-          {billingData.map((bill) => (
-            <div key={bill.id} className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-semibold text-gray-800">
-                    {bill.description}
-                  </h3>
-
-                  <p className="text-sm text-gray-500">
-                    {bill.date}
-                  </p>
-                </div>
-
-                <div className="text-right">
-                  <p className="font-semibold text-gray-800">
-                    {bill.amount}
-                  </p>
-
-                  <span className="text-xs text-green-600">
-                    {bill.status}
-                  </span>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
+      <Billingandpayment
+        patientId={patient?.patientId || patient?.id}
+      />
     );
   };
 
-  const renderVisitHistory = () => {
+  const renderMedicalHistory = () => {
     return (
       <div className="space-y-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-800">
-            Visit History
+            Medical History
           </h1>
           <p className="text-gray-500 mt-1">
             View your previous visits.
@@ -843,29 +708,46 @@ const UserDashboard = () => {
         </div>
 
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 divide-y">
-          {visitHistory.map((visit) => (
-            <div key={visit.id} className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-semibold text-gray-800">
-                    {visit.doctor}
-                  </h3>
+          {completedAppointments.length > 0 ? (
+            completedAppointments.map((visit) => (
+              <div key={visit.id} className="p-6">
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <h3 className="font-semibold text-gray-800">
+                      {visit.doctorName || "Doctor"}
+                    </h3>
 
-                  <p className="text-sm text-gray-500">
-                    {visit.department}
-                  </p>
+                    <p className="text-sm text-gray-500">
+                      {visit.department || "Department not specified"}
+                    </p>
 
-                  <p className="text-sm text-gray-500 mt-1">
-                    {visit.date} • {visit.diagnosis}
-                  </p>
+                    <p className="text-sm text-gray-500 mt-1">
+                      {formatAppointmentDate(visit.date)}
+                      {visit.reason
+                        ? ` • ${visit.reason}`
+                        : ""}
+                    </p>
+                  </div>
+
+                  <span className="px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700">
+                    {visit.status}
+                  </span>
                 </div>
-
-                <span className="px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700">
-                  {visit.status}
-                </span>
               </div>
+            ))
+          ) : (
+            <div className="p-8 text-center">
+              <History className="h-10 w-10 text-gray-300 mx-auto" />
+
+              <h3 className="font-semibold text-gray-700 mt-3">
+                No medical history available
+              </h3>
+
+              <p className="text-sm text-gray-500 mt-1">
+                Completed appointments will appear here.
+              </p>
             </div>
-          ))}
+          )}
         </div>
       </div>
     );
@@ -895,8 +777,8 @@ const UserDashboard = () => {
       case "payments":
         return renderPayments();
 
-      case "history":
-        return renderVisitHistory();
+      case "medical-history":
+        return renderMedicalHistory();
 
       default:
         return renderDashboard();

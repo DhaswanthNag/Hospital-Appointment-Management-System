@@ -9,13 +9,9 @@ import {
   MdMedicalServices, 
   MdPayment, 
   MdScience, 
-  MdBusiness, 
+  MdDescription,
   MdAnalytics, 
-  MdNotificationsActive, 
-  MdPerson, 
-  MdLock, 
-  MdSettings, 
-  MdHistory,
+  MdNotificationsActive,
 } from 'react-icons/md';
 
 const AdminSidebar = ({ sidebarOpen, setSidebarOpen, activeModule, setActiveModule }) => {
@@ -29,13 +25,9 @@ const AdminSidebar = ({ sidebarOpen, setSidebarOpen, activeModule, setActiveModu
     { id: 'prescription', name: 'Prescription', icon: MdMedicalServices, admin: true, doctor: true, patient: true },
     { id: 'billing', name: 'Billing & Payment', icon: MdPayment, admin: true, doctor: false, patient: true },
     { id: 'laboratory', name: 'Laboratory Management', icon: MdScience, admin: true, doctor: true, patient: true },
-    { id: 'reception', name: 'Reception / Front Desk', icon: MdBusiness, admin: true, doctor: false, patient: false },
+    { id: 'medical-records', name: 'Medical Records', icon: MdDescription, admin: true, doctor: true, patient: true },
     { id: 'reports', name: 'Reports & Analytics', icon: MdAnalytics, admin: true, doctor: true, patient: true },
     { id: 'notifications', name: 'Notifications / Alerts', icon: MdNotificationsActive, admin: true, doctor: true, patient: true },
-    { id: 'user-management', name: 'User Management', icon: MdPerson, admin: true, doctor: false, patient: false },
-    { id: 'role-management', name: 'Role Management', icon: MdLock, admin: true, doctor: false, patient: false },
-    { id: 'system-config', name: 'System Configuration', icon: MdSettings, admin: true, doctor: false, patient: false },
-    { id: 'audit-logs', name: 'Audit Logs', icon: MdHistory, admin: true, doctor: false, patient: false },
   ];
 
   return (
