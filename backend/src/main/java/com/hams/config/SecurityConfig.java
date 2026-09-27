@@ -59,6 +59,9 @@ public class SecurityConfig {
                         // Laboratory Management
                         .requestMatchers("/api/lab-reports/**").permitAll()
 
+                        // Medical Record Management
+                        .requestMatchers("/api/medical-records/**").permitAll()
+
                         // ==============================
                         // EVERYTHING ELSE
                         // ==============================

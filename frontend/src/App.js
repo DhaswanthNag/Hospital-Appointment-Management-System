@@ -17,6 +17,7 @@ import AdminPanel from "./pages/AdminPanel";
 
 // Admin Components
 import Dashboard from "./components/admin/Dashboard";
+import MedicalHistory from "./components/admin/MedicalHistory";
 import AdminSidebar from "./sidebar/AdminSidebar";
 
 // Doctor Components
@@ -26,6 +27,7 @@ import DoctorDashboard from "./components/doctor/DoctorDashboard";
 // User Components
 import UserDashboard from "./components/user/UserDashboard";
 import LabReports from "./components/user/LabReports";
+import UserMedicalHistory from "./components/user/MedicalHistory";
 import UserSidebar from "./sidebar/UserSidebar";
 
 // Common Components
@@ -69,6 +71,16 @@ export default function App() {
           element={
             <ProtectedRoute allowedRoles={["admin"]}>
               <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Admin Medical Records */}
+        <Route
+          path="/admin/medical-records"
+          element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <MedicalHistory />
             </ProtectedRoute>
           }
         />
@@ -147,6 +159,17 @@ export default function App() {
             </ProtectedRoute>
           }
         />
+
+        {/* User / Patient Medical History */}
+        <Route
+          path="/user/medical-history"
+          element={
+            <ProtectedRoute allowedRoles={["patient", "user"]}>
+              <UserMedicalHistory />
+            </ProtectedRoute>
+          }
+        />
+
       </Routes>
     </div>
   );

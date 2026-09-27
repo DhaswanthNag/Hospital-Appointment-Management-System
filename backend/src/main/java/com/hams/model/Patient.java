@@ -1,7 +1,6 @@
 package com.hams.model;
 
 import jakarta.persistence.*;
-import java.util.List;
 
 @Entity
 @Table(name = "patient", uniqueConstraints = {
@@ -47,9 +46,6 @@ public class Patient {
     private String registrationDate;
 
     private String status;
-
-    @OneToMany(mappedBy = "patient", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<MedicalHistory> medicalHistory;
 
     // Constructors
     public Patient() {}
@@ -107,9 +103,6 @@ public class Patient {
 
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
-
-    public List<MedicalHistory> getMedicalHistory() { return medicalHistory; }
-    public void setMedicalHistory(List<MedicalHistory> medicalHistory) { this.medicalHistory = medicalHistory; }
 
     // Helper method to get full name
     public String getFullName() {

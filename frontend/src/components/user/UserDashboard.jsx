@@ -5,6 +5,7 @@ import Prescription from "./Prescription";
 import Profile from "./Profile";
 import Billingandpayment from "./Billingandpayment";
 import LabReports from "./LabReports";
+import UserMedicalHistory from "./MedicalHistory";
 // import PropTypes from "prop-types";
 import { AuthContext } from "../../context/AuthContext";
 // import { API_BASE_URL } from "../../config";
@@ -41,12 +42,6 @@ const UserDashboard = () => {
   const [prescriptionLoading, setPrescriptionLoading] = useState(false);
 
   const [labReports, setLabReports] = useState([]);
-
-  // Existing dashboard data
-  // Removed sample appointment data because dashboard now uses real backend appointment data.
-  // Removed sample lab result data because there is no connected lab-result backend yet.
-  // Removed sample billing data because billing now uses the real backend billing API.
-  // Visit history now uses real completed appointments from the backend.
 
   // Step 1: resolve the logged-in patient's real patientId (PAT00x) from email
   useEffect(() => {
@@ -751,66 +746,6 @@ const UserDashboard = () => {
     );
   };
 
-  const renderMedicalHistory = () => {
-    return (
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-800">
-            Medical History
-          </h1>
-
-          <p className="text-gray-500 mt-1">
-            View your previous visits.
-          </p>
-        </div>
-
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 divide-y">
-          {completedAppointments.length > 0 ? (
-            completedAppointments.map((visit) => (
-              <div key={visit.id} className="p-6">
-                <div className="flex items-center justify-between gap-4">
-                  <div>
-                    <h3 className="font-semibold text-gray-800">
-                      {visit.doctorName || "Doctor"}
-                    </h3>
-
-                    <p className="text-sm text-gray-500">
-                      {visit.department ||
-                        "Department not specified"}
-                    </p>
-
-                    <p className="text-sm text-gray-500 mt-1">
-                      {formatAppointmentDate(visit.date)}
-                      {visit.reason
-                        ? ` • ${visit.reason}`
-                        : ""}
-                    </p>
-                  </div>
-
-                  <span className="px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700">
-                    {visit.status}
-                  </span>
-                </div>
-              </div>
-            ))
-          ) : (
-            <div className="p-8 text-center">
-              <History className="h-10 w-10 text-gray-300 mx-auto" />
-
-              <h3 className="font-semibold text-gray-700 mt-3">
-                No medical history available
-              </h3>
-
-              <p className="text-sm text-gray-500 mt-1">
-                Completed appointments will appear here.
-              </p>
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  };
-
   const renderModuleContent = () => {
     switch (activeModule) {
       case "dashboard":
@@ -836,7 +771,7 @@ const UserDashboard = () => {
         return renderPayments();
 
       case "medical-history":
-        return renderMedicalHistory();
+        return <UserMedicalHistory />;
 
       default:
         return renderDashboard();

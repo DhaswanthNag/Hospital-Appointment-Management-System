@@ -230,21 +230,21 @@ const Prescription = () => {
         ...formData,
         doctorId: currentDoctor.id,
       };
+
       if (editingId) {
         response = await api.put(
-          `/api/prescriptions/${editingId}/doctor/${encodeURIComponent(
+          `/api/prescriptions/${editingId}?doctorId=${encodeURIComponent(
             currentDoctor.id
           )}`,
           prescriptionData
         );
       } else {
         response = await api.post(
-          `/api/prescriptions/doctor/${encodeURIComponent(
-            currentDoctor.id
-          )}`,
+          `/api/prescriptions`,
           prescriptionData
         );
       }
+
       const savedPrescription = response.data;
       if (editingId) {
         setPrescriptions((prev) =>
@@ -267,10 +267,11 @@ const Prescription = () => {
         console.error("Backend response:", error.response.data);
       }
       if (
-        error.response?.status === 403 ||
-        error.response?.status === 404
+        error.response?.status === 403
       ) {
         alert("You can only update prescriptions created by you.");
+      } else if (error.response?.status === 404) {
+        alert("Prescription endpoint or prescription record was not found.");
       } else {
         alert("Failed to save prescription.");
       }
@@ -304,7 +305,7 @@ const Prescription = () => {
     }
     try {
       await api.delete(
-        `/api/prescriptions/${id}/doctor/${encodeURIComponent(
+        `/api/prescriptions/${id}?doctorId=${encodeURIComponent(
           currentDoctor.id
         )}`
       );
@@ -315,10 +316,11 @@ const Prescription = () => {
     } catch (error) {
       console.error("Error deleting prescription:", error);
       if (
-        error.response?.status === 403 ||
-        error.response?.status === 404
+        error.response?.status === 403
       ) {
         alert("You can only delete prescriptions created by you.");
+      } else if (error.response?.status === 404) {
+        alert("Prescription was not found.");
       } else {
         alert("Failed to delete prescription.");
       }

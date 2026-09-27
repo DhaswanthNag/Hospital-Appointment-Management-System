@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { MdPeople, MdSupervisedUserCircle, MdCalendarToday, MdPayment } from 'react-icons/md';
+import { MdPeople, MdSupervisedUserCircle, MdCalendarToday, MdPayment, MdReceiptLong, MdScience, MdDescription, MdAttachMoney } from 'react-icons/md';
 import AdminSidebar from "../../sidebar/AdminSidebar";
 import DoctorManagement from "./DoctorManagement";
 import PatientManagement from "./PatientManagement";
@@ -7,6 +7,7 @@ import AppointmentSchedulling from "./AppointmentSchedulling";
 import Prescription from "./Prescription";
 import Billingandpayment from "./Billingandpayment";
 import LabReports from "./LabReports";
+import MedicalHistory from "./MedicalHistory"; 
 // import AdminProfilePage from './AdminProfilePage';
 import api from "../../api/api";
 
@@ -18,6 +19,9 @@ const Dashboard = () => {
   const [doctors, setDoctors] = useState([]);
   const [appointments, setAppointments] = useState([]);
   const [prescriptions, setPrescriptions] = useState([]);
+  const [billings, setBillings] = useState([]);
+  const [labReports, setLabReports] = useState([]);
+  const [medicalRecords, setMedicalRecords] = useState([]);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -32,12 +36,18 @@ const Dashboard = () => {
         patientsResponse,
         doctorsResponse,
         appointmentsResponse,
-        prescriptionsResponse
+        prescriptionsResponse,
+        billingResponse,
+        labReportsResponse,
+        medicalRecordsResponse
       ] = await Promise.all([
         api.get("/api/patients"),
         api.get("/api/doctors"),
         api.get("/api/appointments"),
-        api.get("/api/prescriptions")
+        api.get("/api/prescriptions"),
+        api.get("/api/billing"),
+        api.get("/api/lab-reports"),
+        api.get("/api/medical-records")
       ]);
 
       const patientData = Array.isArray(
@@ -64,10 +74,31 @@ const Dashboard = () => {
         ? prescriptionsResponse.data
         : [];
 
+      const billingData = Array.isArray(
+        billingResponse.data
+      )
+        ? billingResponse.data
+        : [];
+
+      const labReportData = Array.isArray(
+        labReportsResponse.data
+      )
+        ? labReportsResponse.data
+        : [];
+
+      const medicalRecordData = Array.isArray(
+        medicalRecordsResponse.data
+      )
+        ? medicalRecordsResponse.data
+        : [];
+
       setPatients(patientData);
       setDoctors(doctorData);
       setAppointments(appointmentData);
       setPrescriptions(prescriptionData);
+      setBillings(billingData);
+      setLabReports(labReportData);
+      setMedicalRecords(medicalRecordData);
 
       console.log(
         "Admin Dashboard - Patients:",
@@ -88,6 +119,21 @@ const Dashboard = () => {
         "Admin Dashboard - Prescriptions:",
         prescriptionData
       );
+
+      console.log(
+        "Admin Dashboard - Billing:",
+        billingData
+      );
+
+      console.log(
+        "Admin Dashboard - Laboratory Reports:",
+        labReportData
+      );
+
+      console.log(
+        "Admin Dashboard - Medical Records:",
+        medicalRecordData
+      );
     } catch (err) {
       console.error(
         "Admin Dashboard - Failed to load dashboard data:",
@@ -103,6 +149,9 @@ const Dashboard = () => {
       setDoctors([]);
       setAppointments([]);
       setPrescriptions([]);
+      setBillings([]);
+      setLabReports([]);
+      setMedicalRecords([]);
 
       setError(
         err?.response?.data?.message ||
@@ -319,6 +368,67 @@ const Dashboard = () => {
     todayAppointments
   ]);
 
+  // Real billing statistics
+  const billingStats = useMemo(() => {
+    const totalBills = billings.length;
+
+    const totalBillingAmount = billings.reduce(
+      (sum, billing) =>
+        sum + Number(billing.totalAmount || 0),
+      0
+    );
+
+    const paidAmount = billings.reduce(
+      (sum, billing) =>
+        sum + Number(billing.paidAmount || 0),
+      0
+    );
+
+    const dueAmount = billings.reduce(
+      (sum, billing) =>
+        sum + Number(billing.dueAmount || 0),
+      0
+    );
+
+    const pendingBills = billings.filter(
+      (billing) =>
+        String(
+          billing.paymentStatus || ""
+        ).toUpperCase() === "PENDING"
+    ).length;
+
+    const partialBills = billings.filter(
+      (billing) =>
+        String(
+          billing.paymentStatus || ""
+        ).toUpperCase() === "PARTIAL"
+    ).length;
+
+    const paidBills = billings.filter(
+      (billing) =>
+        String(
+          billing.paymentStatus || ""
+        ).toUpperCase() === "PAID"
+    ).length;
+
+    return {
+      totalBills,
+      totalBillingAmount,
+      paidAmount,
+      dueAmount,
+      pendingBills,
+      partialBills,
+      paidBills
+    };
+  }, [billings]);
+
+  const formatCurrency = (value) => {
+    return `₹${Number(value || 0).toLocaleString("en-IN", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    })}`;
+  };
+
   const getStatusClass = (status) => {
     switch (
       String(status || "")
@@ -460,6 +570,289 @@ const Dashboard = () => {
                     <MdPayment className="text-2xl" />
                   </div>
 
+                </div>
+              </div>
+
+              {/* Total Bills */}
+              <div className="bg-white rounded-xl shadow-sm p-6 border-l-4 border-lime-500">
+                <div className="flex justify-between items-start">
+
+                  <div>
+                    <p className="text-gray-500 text-sm">
+                      Total Bills
+                    </p>
+
+                    <h3 className="text-2xl font-bold text-gray-800 mt-2">
+                      {loading
+                        ? "..."
+                        : billingStats.totalBills}
+                    </h3>
+
+                    <p className="text-lime-600 text-sm mt-1">
+                      Billing records
+                    </p>
+                  </div>
+
+                  <div className="bg-lime-100 p-3 rounded-lg text-lime-600">
+                    <MdReceiptLong className="text-2xl" />
+                  </div>
+
+                </div>
+              </div>
+
+              {/* Pending Bills */}
+              <div className="bg-white rounded-xl shadow-sm p-6 border-l-4 border-lime-500">
+                <div className="flex justify-between items-start">
+
+                  <div>
+                    <p className="text-gray-500 text-sm">
+                      Pending Bills
+                    </p>
+
+                    <h3 className="text-2xl font-bold text-gray-800 mt-2">
+                      {loading
+                        ? "..."
+                        : billingStats.pendingBills}
+                    </h3>
+
+                    <p className="text-lime-600 text-sm mt-1">
+                      Payment pending
+                    </p>
+                  </div>
+
+                  <div className="bg-lime-100 p-3 rounded-lg text-lime-600">
+                    <MdReceiptLong className="text-2xl" />
+                  </div>
+
+                </div>
+              </div>
+
+              {/* Partial Bills */}
+              <div className="bg-white rounded-xl shadow-sm p-6 border-l-4 border-lime-500">
+                <div className="flex justify-between items-start">
+
+                  <div>
+                    <p className="text-gray-500 text-sm">
+                      Partial Bills
+                    </p>
+
+                    <h3 className="text-2xl font-bold text-gray-800 mt-2">
+                      {loading
+                        ? "..."
+                        : billingStats.partialBills}
+                    </h3>
+
+                    <p className="text-lime-600 text-sm mt-1">
+                      Partially paid
+                    </p>
+                  </div>
+
+                  <div className="bg-lime-100 p-3 rounded-lg text-lime-600">
+                    <MdPayment className="text-2xl" />
+                  </div>
+
+                </div>
+              </div>
+
+              {/* Total Billing Amount */}
+              <div className="bg-white rounded-xl shadow-sm p-6 border-l-4 border-lime-500">
+                <div className="flex justify-between items-start">
+
+                  <div>
+                    <p className="text-gray-500 text-sm">
+                      Total Billing Amount
+                    </p>
+
+                    <h3 className="text-2xl font-bold text-gray-800 mt-2">
+                      {loading
+                        ? "..."
+                        : formatCurrency(
+                            billingStats.totalBillingAmount
+                          )}
+                    </h3>
+
+                    <p className="text-lime-600 text-sm mt-1">
+                      Total invoice value
+                    </p>
+                  </div>
+
+                  <div className="bg-lime-100 p-3 rounded-lg text-lime-600">
+                    <MdAttachMoney className="text-2xl" />
+                  </div>
+
+                </div>
+              </div>
+
+            </div>
+
+            {/* Billing Summary */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+
+              {/* Paid Amount */}
+              <div className="bg-white rounded-xl shadow-sm p-5 border border-lime-100">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <p className="text-sm text-gray-500">
+                      Paid Amount
+                    </p>
+
+                    <p className="text-2xl font-bold text-lime-600 mt-1">
+                      {loading
+                        ? "..."
+                        : formatCurrency(
+                            billingStats.paidAmount
+                          )}
+                    </p>
+
+                    <p className="text-xs text-gray-400 mt-1">
+                      {billingStats.paidBills} fully paid bill(s)
+                    </p>
+                  </div>
+
+                  <div className="bg-lime-100 p-3 rounded-lg text-lime-600">
+                    <MdPayment className="text-2xl" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Due Amount */}
+              <div className="bg-white rounded-xl shadow-sm p-5 border border-lime-100">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <p className="text-sm text-gray-500">
+                      Due Amount
+                    </p>
+
+                    <p className="text-2xl font-bold text-lime-600 mt-1">
+                      {loading
+                        ? "..."
+                        : formatCurrency(
+                            billingStats.dueAmount
+                          )}
+                    </p>
+
+                    <p className="text-xs text-gray-400 mt-1">
+                      Outstanding payments
+                    </p>
+                  </div>
+
+                  <div className="bg-lime-100 p-3 rounded-lg text-lime-600">
+                    <MdReceiptLong className="text-2xl" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Total Billing Records */}
+              <div className="bg-white rounded-xl shadow-sm p-5 border border-lime-100">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <p className="text-sm text-gray-500">
+                      Billing Records
+                    </p>
+
+                    <p className="text-2xl font-bold text-lime-600 mt-1">
+                      {loading
+                        ? "..."
+                        : billings.length}
+                    </p>
+
+                    <p className="text-xs text-gray-400 mt-1">
+                      Total bills in database
+                    </p>
+                  </div>
+
+                  <div className="bg-lime-100 p-3 rounded-lg text-lime-600">
+                    <MdReceiptLong className="text-2xl" />
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            {/* Other Module Summary */}
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
+
+              {/* Total Appointments */}
+              <div className="bg-white rounded-xl shadow-sm p-5 border border-gray-100">
+                <div className="flex items-center gap-4">
+                  <div className="bg-lime-100 p-3 rounded-lg text-lime-600">
+                    <MdCalendarToday className="text-2xl" />
+                  </div>
+
+                  <div>
+                    <p className="text-sm text-gray-500">
+                      Total Appointments
+                    </p>
+
+                    <p className="text-2xl font-bold text-gray-800">
+                      {loading
+                        ? "..."
+                        : appointmentStats.total}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Laboratory Reports */}
+              <div className="bg-white rounded-xl shadow-sm p-5 border border-gray-100">
+                <div className="flex items-center gap-4">
+                  <div className="bg-lime-100 p-3 rounded-lg text-lime-600">
+                    <MdScience className="text-2xl" />
+                  </div>
+
+                  <div>
+                    <p className="text-sm text-gray-500">
+                      Laboratory Reports
+                    </p>
+
+                    <p className="text-2xl font-bold text-gray-800">
+                      {loading
+                        ? "..."
+                        : labReports.length}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Medical Records */}
+              <div className="bg-white rounded-xl shadow-sm p-5 border border-gray-100">
+                <div className="flex items-center gap-4">
+                  <div className="bg-lime-100 p-3 rounded-lg text-lime-600">
+                    <MdDescription className="text-2xl" />
+                  </div>
+
+                  <div>
+                    <p className="text-sm text-gray-500">
+                      Medical Records
+                    </p>
+
+                    <p className="text-2xl font-bold text-gray-800">
+                      {loading
+                        ? "..."
+                        : medicalRecords.length}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Appointment Status Summary */}
+              <div className="bg-white rounded-xl shadow-sm p-5 border border-gray-100">
+                <div className="flex items-center gap-4">
+                  <div className="bg-lime-100 p-3 rounded-lg text-lime-600">
+                    <MdPeople className="text-2xl" />
+                  </div>
+
+                  <div>
+                    <p className="text-sm text-gray-500">
+                      Confirmed Appointments
+                    </p>
+
+                    <p className="text-2xl font-bold text-gray-800">
+                      {loading
+                        ? "..."
+                        : appointmentStats.confirmed}
+                    </p>
+                  </div>
                 </div>
               </div>
 
@@ -689,6 +1082,9 @@ const Dashboard = () => {
 
       case "laboratory-management":
         return <LabReports />;
+
+      case "medical-records": 
+        return <MedicalHistory />;  
 
       default:
         return (

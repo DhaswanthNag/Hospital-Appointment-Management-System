@@ -7,22 +7,26 @@ import React, {
 } from 'react';
 import DoctorSidebar from "../../sidebar/DoctorSidebar";
 // import { Download, Eye, Pencil } from "lucide-react";
-import { Calendar, Users, Clock, CheckCircle, User, RefreshCw, History } from "lucide-react";
+import { Calendar, Users, Clock, CheckCircle, User, RefreshCw, FileText, FlaskConical, ClipboardList} from "lucide-react";
 import AppointmentManagement from './Appointment';
 import Prescription from './Prescription';
 import PatientManagement from './PatientManagement';
 import Billingandpayment from './Billingandpayment';
 import LabReports from "./LabReports";
+import MedicalHistory from "./MedicalHistory";
 import { AuthContext } from "../../context/AuthContext";
 import api from "../../api/api";
 
 const DoctorDashboard = () => {
   const { user } = useContext(AuthContext);
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [activeModule, setActiveModule] = useState('appointments');
+  const [activeModule, setActiveModule] = useState('dashboard');
   const [doctor, setDoctor] = useState(null);
   const [patients, setPatients] = useState([]);
   const [appointments, setAppointments] = useState([]);
+  const [prescriptions, setPrescriptions] = useState([]);
+  const [labReports, setLabReports] = useState([]);
+  const [medicalRecords, setMedicalRecords] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -141,13 +145,27 @@ const DoctorDashboard = () => {
         );
       }
 
-      const [patientResponse, appointmentResponse] =
-        await Promise.all([
-          api.get("/api/patients"),
-          api.get(
-            `/api/appointments/doctor/${doctorId}`
-          )
-        ]);
+      const [
+        patientResponse,
+        appointmentResponse,
+        prescriptionResponse,
+        labReportResponse,
+        medicalRecordResponse
+      ] = await Promise.all([
+        api.get("/api/patients"),
+        api.get(
+          `/api/appointments/doctor/${doctorId}`
+        ),
+        api.get(
+          `/api/prescriptions/doctor/${doctorId}`
+        ),
+        api.get(
+          `/api/lab-reports/doctor/${doctorId}`
+        ),
+        api.get(
+          `/api/medical-records/doctor/${doctorId}`
+        )
+      ]);
 
       const patientData = Array.isArray(
         patientResponse.data
@@ -161,8 +179,29 @@ const DoctorDashboard = () => {
         ? appointmentResponse.data
         : [];
 
+      const prescriptionData = Array.isArray(
+        prescriptionResponse.data
+      )
+        ? prescriptionResponse.data
+        : [];
+
+      const labReportData = Array.isArray(
+        labReportResponse.data
+      )
+        ? labReportResponse.data
+        : [];
+
+      const medicalRecordData = Array.isArray(
+        medicalRecordResponse.data
+      )
+        ? medicalRecordResponse.data
+        : [];
+
       setPatients(patientData);
       setAppointments(appointmentData);
+      setPrescriptions(prescriptionData);
+      setLabReports(labReportData);
+      setMedicalRecords(medicalRecordData);
 
       console.log(
         "DoctorDashboard - Patients from backend:",
@@ -172,6 +211,21 @@ const DoctorDashboard = () => {
       console.log(
         "DoctorDashboard - Appointments from backend:",
         appointmentData
+      );
+
+      console.log(
+        "DoctorDashboard - Prescriptions from backend:",
+        prescriptionData
+      );
+
+      console.log(
+        "DoctorDashboard - Lab reports from backend:",
+        labReportData
+      );
+
+      console.log(
+        "DoctorDashboard - Medical records from backend:",
+        medicalRecordData
       );
 
     } catch (err) {
@@ -188,6 +242,9 @@ const DoctorDashboard = () => {
       setDoctor(null);
       setPatients([]);
       setAppointments([]);
+      setPrescriptions([]);
+      setLabReports([]);
+      setMedicalRecords([]);
 
       setError(
         err?.response?.data?.message ||
@@ -372,15 +429,6 @@ const DoctorDashboard = () => {
       inactive
     };
   }, [assignedPatients]);
-
-  // Real completed appointments used as medical history
-  const medicalHistory = useMemo(() => {
-    return appointments.filter(
-      (appointment) =>
-        String(appointment.status || "")
-          .toLowerCase() === "completed"
-    );
-  }, [appointments]);
 
   const getPatientName = (appointment) => {
     const patient =
@@ -622,6 +670,78 @@ const DoctorDashboard = () => {
               </div>
             </div>
           </div>
+
+          {/* Total Prescriptions */}
+          <div className="border rounded-xl p-5 bg-white shadow-sm hover:shadow-md transition">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-500">
+                  Total Prescriptions
+                </p>
+
+                <p className="text-3xl font-bold mt-2 text-gray-800">
+                  {loading
+                    ? "..."
+                    : prescriptions.length}
+                </p>
+              </div>
+
+              <div className="bg-purple-100 p-3 rounded-lg">
+                <FileText
+                  size={22}
+                  className="text-purple-600"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Total Lab Reports */}
+          <div className="border rounded-xl p-5 bg-white shadow-sm hover:shadow-md transition">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-500">
+                  Total Lab Reports
+                </p>
+
+                <p className="text-3xl font-bold mt-2 text-gray-800">
+                  {loading
+                    ? "..."
+                    : labReports.length}
+                </p>
+              </div>
+
+              <div className="bg-cyan-100 p-3 rounded-lg">
+                <FlaskConical
+                  size={22}
+                  className="text-cyan-600"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Total Medical Reports */}
+          <div className="border rounded-xl p-5 bg-white shadow-sm hover:shadow-md transition">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-500">
+                  Total Medical Reports
+                </p>
+
+                <p className="text-3xl font-bold mt-2 text-gray-800">
+                  {loading
+                    ? "..."
+                    : medicalRecords.length}
+                </p>
+              </div>
+
+              <div className="bg-orange-100 p-3 rounded-lg">
+                <ClipboardList
+                  size={22}
+                  className="text-orange-600"
+                />
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Upcoming Appointments */}
@@ -755,133 +875,6 @@ const DoctorDashboard = () => {
 
   const renderPrescriptions = () => (
     <Prescription />
-  );
-
-  const renderMedicalHistory = () => (
-    <div className="space-y-6">
-      <div className="bg-white rounded-lg shadow-sm p-6">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-          <div>
-            <h2 className="text-xl font-semibold text-gray-800">
-              Medical History
-            </h2>
-
-            <p className="text-gray-500 mt-1">
-              View completed appointments and previous patient visits.
-            </p>
-          </div>
-
-          <button
-            type="button"
-            onClick={loadDashboardData}
-            disabled={loading}
-            className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-lime-500 text-white text-sm font-medium hover:bg-lime-600 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
-          >
-            <RefreshCw
-              size={16}
-              className={
-                loading
-                  ? "animate-spin"
-                  : ""
-              }
-            />
-            Refresh
-          </button>
-        </div>
-
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg p-4 mb-6">
-            {error}
-          </div>
-        )}
-
-        {loading ? (
-          <div className="border border-gray-200 rounded-lg p-8 text-center">
-            <RefreshCw
-              className="h-6 w-6 text-lime-600 animate-spin mx-auto"
-            />
-
-            <p className="text-gray-500 mt-2">
-              Loading medical history...
-            </p>
-          </div>
-        ) : medicalHistory.length === 0 ? (
-          <div className="border border-gray-200 rounded-lg p-8 text-center">
-            <History className="h-10 w-10 text-gray-300 mx-auto" />
-
-            <h3 className="font-semibold text-gray-700 mt-3">
-              No medical history available
-            </h3>
-
-            <p className="text-sm text-gray-500 mt-1">
-              Completed appointments will appear here.
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {medicalHistory.map((appointment) => (
-              <div
-                key={appointment.id}
-                className="border border-gray-200 rounded-lg p-5 hover:shadow-md transition-shadow"
-              >
-                <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
-
-                  <div className="flex items-start gap-4">
-                    <div className="bg-lime-100 p-3 rounded-lg shrink-0">
-                      <History
-                        size={20}
-                        className="text-lime-600"
-                      />
-                    </div>
-
-                    <div>
-                      <h3 className="font-semibold text-gray-800">
-                        {getPatientName(appointment)}
-                      </h3>
-
-                      <p className="text-sm text-gray-500 mt-1">
-                        {appointment.department ||
-                          "Department not specified"}
-                      </p>
-
-                      <p className="text-sm text-gray-500 mt-1">
-                        {formatAppointmentDate(
-                          appointment.date
-                        )}
-                        {" • "}
-                        {formatAppointmentTime(
-                          appointment.time
-                        )}
-                      </p>
-
-                      {appointment.type && (
-                        <p className="text-sm text-gray-500 mt-1">
-                          Type: {appointment.type}
-                        </p>
-                      )}
-
-                      {appointment.reason && (
-                        <p className="text-sm text-gray-500 mt-1">
-                          Reason: {appointment.reason}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-
-                  <span
-                    className={`px-4 py-2 rounded-full text-xs font-semibold capitalize ${getStatusClass(
-                      appointment.status
-                    )}`}
-                  >
-                    {appointment.status || "Completed"}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
   );
 
   const renderReports = () => (
@@ -1116,6 +1109,9 @@ const DoctorDashboard = () => {
 
   const renderModuleContent = () => {
     switch (activeModule) {
+      case 'dashboard':
+        return renderAppointments();
+
       case 'appointments':
         return <AppointmentManagement />;
 
@@ -1128,17 +1124,15 @@ const DoctorDashboard = () => {
       case 'billing':
         return <Billingandpayment />;
 
-case 'lab-management':
-  return <LabReports doctorId={doctor?.id} />;
+      case 'lab-management':
+        return <LabReports doctorId={doctor?.id} />;
 
-      case 'medical-history':
-        return renderMedicalHistory();
+      case "medical-records":
+        return <MedicalHistory />;
 
       case 'reports':
         return renderReports();
 
-      default:
-        return renderAppointments();
     }
   };
 
