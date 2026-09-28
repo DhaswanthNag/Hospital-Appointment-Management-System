@@ -1,7 +1,7 @@
 package com.hams.service;
 
 import com.hams.model.LabReport;
-import com.hams.repository.LabReportRepository;
+import com.hams.repo.LabReportRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

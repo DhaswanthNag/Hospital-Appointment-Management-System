@@ -1,4 +1,4 @@
-package com.hams.repository;
+package com.hams.repo;
 
 import com.hams.model.LabReport;
 import org.springframework.data.jpa.repository.JpaRepository;

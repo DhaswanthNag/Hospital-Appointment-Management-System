@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import api from "../api/api";
 import PropTypes from "prop-types";
 
@@ -14,14 +14,14 @@ export default function AvailabilityManager({ doctorId }){
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
 
-  const fetchAvail = async () => {
+  const fetchAvail = useCallback(async () => {
     try {
       const res = await api.get(`/doctors/${doctorId}/availability`);
       setList(res.data || []);
     } catch (e) { setErr("Failed to load availability"); }
-  };
+  }, [doctorId]);
 
-  useEffect(()=>{ if (doctorId) fetchAvail(); }, [doctorId]);
+  useEffect(()=>{ if (doctorId) fetchAvail(); }, [doctorId, fetchAvail]);
 
   const handleChange = (e) => setForm({...form, [e.target.name]: e.target.value});
 

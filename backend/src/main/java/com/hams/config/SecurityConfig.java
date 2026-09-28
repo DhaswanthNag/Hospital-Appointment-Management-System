@@ -62,6 +62,9 @@ public class SecurityConfig {
                         // Medical Record Management
                         .requestMatchers("/api/medical-records/**").permitAll()
 
+                        // Reports Management
+                        .requestMatchers("/api/reports/**").permitAll()
+
                         // ==============================
                         // EVERYTHING ELSE
                         // ==============================

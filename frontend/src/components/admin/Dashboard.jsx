@@ -8,6 +8,7 @@ import Prescription from "./Prescription";
 import Billingandpayment from "./Billingandpayment";
 import LabReports from "./LabReports";
 import MedicalHistory from "./MedicalHistory"; 
+import Reports from "./Reports";
 // import AdminProfilePage from './AdminProfilePage';
 import api from "../../api/api";
 
@@ -1085,6 +1086,9 @@ const Dashboard = () => {
 
       case "medical-records": 
         return <MedicalHistory />;  
+
+      case "reports":
+        return <Reports />;  
 
       default:
         return (
