@@ -696,7 +696,7 @@ const Dashboard = () => {
                       Paid Amount
                     </p>
 
-                    <p className="text-2xl font-bold text-lime-600 mt-1">
+                    <p className="text-2xl font-bold text-emerald-700 mt-1">
                       {loading
                         ? "..."
                         : formatCurrency(
@@ -709,7 +709,7 @@ const Dashboard = () => {
                     </p>
                   </div>
 
-                  <div className="bg-lime-100 p-3 rounded-lg text-lime-600">
+                  <div className="bg-lime-50 p-3 rounded-lg text-emerald-600">
                     <MdPayment className="text-2xl" />
                   </div>
                 </div>
@@ -723,7 +723,7 @@ const Dashboard = () => {
                       Due Amount
                     </p>
 
-                    <p className="text-2xl font-bold text-lime-600 mt-1">
+                    <p className="text-2xl font-bold text-red-600 mt-1">
                       {loading
                         ? "..."
                         : formatCurrency(
@@ -736,21 +736,21 @@ const Dashboard = () => {
                     </p>
                   </div>
 
-                  <div className="bg-lime-100 p-3 rounded-lg text-lime-600">
+                  <div className="bg-lime-50 p-3 rounded-lg text-red-600">
                     <MdReceiptLong className="text-2xl" />
                   </div>
                 </div>
               </div>
 
               {/* Total Billing Records */}
-              <div className="bg-white rounded-xl shadow-sm p-5 border border-lime-100">
+              <div className="bg-white rounded-xl shadow-sm p-5 border border-lie-100">
                 <div className="flex justify-between items-center">
                   <div>
                     <p className="text-sm text-gray-500">
                       Billing Records
                     </p>
 
-                    <p className="text-2xl font-bold text-lime-600 mt-1">
+                    <p className="text-2xl font-bold text-purple-700 mt-1">
                       {loading
                         ? "..."
                         : billings.length}
@@ -761,7 +761,7 @@ const Dashboard = () => {
                     </p>
                   </div>
 
-                  <div className="bg-lime-100 p-3 rounded-lg text-lime-600">
+                  <div className="bg-lime-50 p-3 rounded-lg text-purple-600">
                     <MdReceiptLong className="text-2xl" />
                   </div>
                 </div>
