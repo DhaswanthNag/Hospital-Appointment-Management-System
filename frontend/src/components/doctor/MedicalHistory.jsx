@@ -692,7 +692,7 @@ const MedicalHistory = () => {
               <button
                 type="button"
                 onClick={() => setSelectedRecord(null)}
-                className="px-5 py-2.5 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition-colors font-medium"
+                className="px-5 py-2.5 bg-lime-500 text-white rounded-lg hover:bg-lime-600 transition-colors font-medium"
               >
                 Close
               </button>

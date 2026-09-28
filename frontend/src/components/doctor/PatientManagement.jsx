@@ -252,7 +252,7 @@ const PatientManagement = ({ doctorId }) => {
       case "inactive":
         return "bg-gray-100 text-gray-700";
       case "discharged":
-        return "bg-blue-100 text-blue-700";
+        return "bg-lime-100 text-lime-700";
       default:
         return "bg-gray-100 text-gray-700";
     }

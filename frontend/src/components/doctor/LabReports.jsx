@@ -248,7 +248,7 @@ const LabReports = ({ doctorId }) => {
     ) {
       return {
         className:
-          "bg-emerald-50 text-emerald-600 border border-emerald-200",
+          "bg-lime-50 text-lime-600 border border-lime-200",
         icon: <CheckCircle size={14} />,
         label: status || "Normal",
       };
@@ -410,7 +410,7 @@ const LabReports = ({ doctorId }) => {
       label: "Normal",
       value: statistics.normal,
       icon: CheckCircle,
-      valueClass: "text-emerald-600",
+      valueClass: "text-emerd-600",
       iconClass: "text-emerald-600",
       iconBg: "bg-emerald-50",
     },

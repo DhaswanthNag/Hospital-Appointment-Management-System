@@ -395,7 +395,7 @@ const LabReports = ({ patientId: passedPatientId }) => {
       normalizedStatus.includes("completed") ||
       normalizedStatus.includes("complete")
     ) {
-      return "bg-emerald-50 text-emerald-600 border-emerald-200";
+      return "bg-lime-50 text-lime-600 border-lime-200";
     }
 
     if (
@@ -510,7 +510,7 @@ const LabReports = ({ patientId: passedPatientId }) => {
                   Completed
                 </p>
 
-                <p className="text-3xl font-bold text-emerald-600 mt-1">
+                <p className="text-3xl font-bold text-lime-600 mt-1">
                   {
                     reports.filter((report) =>
                       ["completed", "complete", "normal"].includes(
@@ -521,8 +521,8 @@ const LabReports = ({ patientId: passedPatientId }) => {
                 </p>
               </div>
 
-              <div className="w-11 h-11 rounded-xl bg-emerald-50 flex items-center justify-center">
-                <HeartPulse className="w-5 h-5 text-emerald-600" />
+              <div className="w-11 h-11 rounded-xl bg-lime-50 flex items-center justify-center">
+                <HeartPulse className="w-5 h-5 text-lime-600" />
               </div>
             </div>
           </div>

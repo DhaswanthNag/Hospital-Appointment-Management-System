@@ -525,7 +525,7 @@ const Prescription = () => {
             {prescriptions.length}
           </h3>
         </div>
-        <div className="bg-white rounded-xl shadow-sm p-5 border-l-4 border-blue-500">
+        <div className="bg-white rounded-xl shadow-sm p-5 border-l-4 border-lime-500">
           <p className="text-sm text-gray-500">
             My Patients
           </p>
@@ -533,7 +533,7 @@ const Prescription = () => {
             {patients.length}
           </h3>
         </div>
-        <div className="bg-white rounded-xl shadow-sm p-5 border-l-4 border-purple-500">
+        <div className="bg-white rounded-xl shadow-sm p-5 border-l-4 border-lime-500">
           <p className="text-sm text-gray-500">
             Medicines Prescribed
           </p>
@@ -602,7 +602,7 @@ const Prescription = () => {
                     </td>
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-2">
-                        <div className="w-9 h-9 rounded-full bg-purple-100 flex items-center justify-center text-purple-600">
+                        <div className="w-9 h-9 rounded-full bg-lime-100 flex items-center justify-center text-lime-600">
                           <MdPerson />
                         </div>
                         <div>
@@ -633,7 +633,7 @@ const Prescription = () => {
                       </div>
                     </td>
                     <td className="px-5 py-4">
-                      <span className="px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-sm">
+                      <span className="px-3 py-1 rounded-full bg-lime-50 text-lime-700 text-sm">
                         {prescription.diagnosis ||
                           "Not specified"}
                       </span>
@@ -662,7 +662,7 @@ const Prescription = () => {
                             );
                           }}
                           title="View"
-                          className="p-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100"
+                          className="p-2 rounded-lg bg-lime-50 text-lime-600 hover:bg-lime-100"
                         >
                           <MdVisibility />
                         </button>
@@ -1031,8 +1031,8 @@ const Prescription = () => {
             <div className="p-6 space-y-6">
               {/* PATIENT / DOCTOR */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="bg-purple-50 rounded-xl p-4">
-                  <p className="text-sm text-purple-600">
+                <div className="bg-lime-50 rounded-xl p-4">
+                  <p className="text-sm text-lime-600">
                     Patient
                   </p>
                   <h4 className="font-semibold text-gray-800 mt-1">
