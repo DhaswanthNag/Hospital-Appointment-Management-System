@@ -630,183 +630,187 @@ const Reports = () => {
           </div>
         </div>
 
-        {/* ============================================================
-            DOCTOR APPOINTMENT BAR GRAPH
-        ============================================================ */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 md:p-6">
+          {/* ============================================================
+              DOCTOR APPOINTMENT BAR GRAPH
+          ============================================================ */}
 
-          <div className="flex items-center justify-between mb-5">
-            <div>
-              <h2 className="text-lg font-bold text-slate-800">
-                Doctor Appointment Analytics
-              </h2>
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 md:p-6">
 
-              <p className="text-sm text-slate-500 mt-1">
-                Appointment volume by doctor ID
-              </p>
+            <div className="flex items-center justify-between mb-5">
+              <div>
+                <h2 className="text-lg font-bold text-slate-800">
+                  Doctor Appointment Analytics
+                </h2>
+
+                <p className="text-sm text-slate-500 mt-1">
+                  Appointment volume by doctor ID
+                </p>
+              </div>
+
+              <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center">
+                <Stethoscope
+                  className="text-emerald-700"
+                  size={20}
+                />
+              </div>
             </div>
 
-            <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center">
-              <Stethoscope
-                className="text-emerald-700"
-                size={20}
-              />
-            </div>
-          </div>
+            <div className="h-80">
 
-          <div className="h-80">
-
-            {doctorData.length > 0 ? (
-              <ResponsiveContainer
-                width="100%"
-                height="100%"
-              >
-                <BarChart
-                  data={doctorData}
-                  margin={{
-                    top: 10,
-                    right: 20,
-                    left: 0,
-                    bottom: 10,
-                  }}
+              {doctorData.length > 0 ? (
+                <ResponsiveContainer
+                  width="100%"
+                  height="100%"
                 >
-                  <CartesianGrid
-                    strokeDasharray="3 3"
-                  />
-
-                  <XAxis
-                    dataKey="doctorId"
-                    tick={{
-                      fontSize: 12,
+                  <BarChart
+                    data={doctorData}
+                    margin={{
+                      top: 10,
+                      right: 20,
+                      left: 0,
+                      bottom: 10,
                     }}
-                  />
+                  >
+                    <CartesianGrid
+                      strokeDasharray="3 3"
+                    />
 
-                  <YAxis
-                    allowDecimals={false}
-                  />
+                    <XAxis
+                      dataKey="doctorId"
+                      tick={{
+                        fontSize: 12,
+                      }}
+                    />
 
-                  <Tooltip
-                    formatter={(value) => [
-                      value,
-                      "Appointments",
-                    ]}
-                    labelFormatter={(label) =>
-                      `Doctor ID: ${label}`
-                    }
-                  />
+                    <YAxis
+                      allowDecimals={false}
+                    />
 
-                  <Legend />
+                    <Tooltip
+                      formatter={(value) => [
+                        value,
+                        "Appointments",
+                      ]}
+                      labelFormatter={(label) =>
+                        `Doctor ID: ${label}`
+                      }
+                    />
 
-                  <Bar
-                    dataKey="appointmentCount"
-                    name="Appointments"
-                    fill="#84cc16"
-                    radius={[
-                      6,
-                      6,
-                      0,
-                      0,
-                    ]}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="h-full flex items-center justify-center text-slate-500">
-                No doctor appointment data available.
+                    <Legend />
+
+                    <Bar
+                      dataKey="appointmentCount"
+                      name="Appointments"
+                      fill="#84cc16"
+                      radius={[
+                        6,
+                        6,
+                        0,
+                        0,
+                      ]}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="h-full flex items-center justify-center text-slate-500">
+                  No doctor appointment data available.
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* ============================================================
+              PATIENT APPOINTMENT HISTOGRAM
+          ============================================================ */}
+
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 md:p-6">
+
+            <div className="flex items-center justify-between mb-5">
+              <div>
+                <h2 className="text-lg font-bold text-slate-800">
+                  Patient Appointment Analytics
+                </h2>
+
+                <p className="text-sm text-slate-500 mt-1">
+                  Appointment volume by patient ID
+                </p>
               </div>
-            )}
-          </div>
-        </div>
 
-        {/* ============================================================
-            PATIENT APPOINTMENT HISTOGRAM
-        ============================================================ */}
-
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 md:p-6">
-
-          <div className="flex items-center justify-between mb-5">
-            <div>
-              <h2 className="text-lg font-bold text-slate-800">
-                Patient Appointment Analytics
-              </h2>
-
-              <p className="text-sm text-slate-500 mt-1">
-                Appointment volume by patient ID
-              </p>
+              <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center">
+                <Users
+                  className="text-blue-700"
+                  size={20}
+                />
+              </div>
             </div>
 
-            <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center">
-              <Users
-                className="text-blue-700"
-                size={20}
-              />
-            </div>
-          </div>
+            <div className="h-80">
 
-          <div className="h-80">
-
-            {patientData.length > 0 ? (
-              <ResponsiveContainer
-                width="100%"
-                height="100%"
-              >
-                <BarChart
-                  data={patientData}
-                  layout="vertical"
-                  margin={{
-                    top: 10,
-                    right: 20,
-                    left: 25,
-                    bottom: 10,
-                  }}
+              {patientData.length > 0 ? (
+                <ResponsiveContainer
+                  width="100%"
+                  height="100%"
                 >
-                  <CartesianGrid
-                    strokeDasharray="3 3"
-                  />
+                  <BarChart
+                    data={patientData}
+                    layout="vertical"
+                    margin={{
+                      top: 10,
+                      right: 20,
+                      left: 25,
+                      bottom: 10,
+                    }}
+                  >
+                    <CartesianGrid
+                      strokeDasharray="3 3"
+                    />
 
-                  <XAxis
-                    type="number"
-                    allowDecimals={false}
-                  />
+                    <XAxis
+                      type="number"
+                      allowDecimals={false}
+                    />
 
-                  <YAxis
-                    type="category"
-                    dataKey="patientId"
-                    width={75}
-                  />
+                    <YAxis
+                      type="category"
+                      dataKey="patientId"
+                      width={75}
+                    />
 
-                  <Tooltip
-                    formatter={(value) => [
-                      value,
-                      "Appointments",
-                    ]}
-                    labelFormatter={(label) =>
-                      `Patient ID: ${label}`
-                    }
-                  />
+                    <Tooltip
+                      formatter={(value) => [
+                        value,
+                        "Appointments",
+                      ]}
+                      labelFormatter={(label) =>
+                        `Patient ID: ${label}`
+                      }
+                    />
 
-                  <Legend />
+                    <Legend />
 
-                  <Bar
-                    dataKey="appointmentCount"
-                    name="Appointments"
-                    fill="#22c55e"
-                    radius={[
-                      0,
-                      6,
-                      6,
-                      0,
-                    ]}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="h-full flex items-center justify-center text-slate-500">
-                No patient appointment data available.
-              </div>
-            )}
+                    <Bar
+                      dataKey="appointmentCount"
+                      name="Appointments"
+                      fill="#22c55e"
+                      radius={[
+                        0,
+                        6,
+                        6,
+                        0,
+                      ]}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="h-full flex items-center justify-center text-slate-500">
+                  No patient appointment data available.
+                </div>
+              )}
+            </div>
           </div>
+
         </div>
 
         {/* ============================================================
