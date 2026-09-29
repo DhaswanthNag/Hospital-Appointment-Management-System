@@ -18,11 +18,13 @@ import AdminPanel from "./pages/AdminPanel";
 // Admin Components
 import Dashboard from "./components/admin/Dashboard";
 import MedicalHistory from "./components/admin/MedicalHistory";
+import AdminNotifications from "./components/admin/Notifications";
 import AdminSidebar from "./sidebar/AdminSidebar";
 
 // Doctor Components
 import DoctorSidebar from "./sidebar/DoctorSidebar";
 import DoctorDashboard from "./components/doctor/DoctorDashboard";
+import DoctorNotifications from "./components/doctor/Notifications";
 
 // User Components
 import UserDashboard from "./components/user/UserDashboard";
@@ -85,6 +87,16 @@ export default function App() {
           }
         />
 
+        {/* Admin Notifications & Alerts */}
+        <Route
+          path="/admin/notifications"
+          element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <AdminNotifications />
+            </ProtectedRoute>
+          }
+        />
+
         <Route
           path="/adminsidebar"
           element={
@@ -109,6 +121,15 @@ export default function App() {
           element={
             <ProtectedRoute allowedRoles={["doctor"]}>
               <DoctorDashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/doctor/notifications"
+          element={
+            <ProtectedRoute allowedRoles={["doctor"]}>
+              <DoctorNotifications />
             </ProtectedRoute>
           }
         />

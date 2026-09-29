@@ -6,6 +6,7 @@ import Profile from "./Profile";
 import Billingandpayment from "./Billingandpayment";
 import LabReports from "./LabReports";
 import UserMedicalHistory from "./MedicalHistory";
+import Notifications from "./Notifications";
 // import PropTypes from "prop-types";
 import { AuthContext } from "../../context/AuthContext";
 // import { API_BASE_URL } from "../../config";
@@ -772,6 +773,13 @@ const UserDashboard = () => {
 
       case "medical-history":
         return <UserMedicalHistory />;
+
+      case "notifications":
+        return (
+          <Notifications
+            patientId={patient?.patientId || patient?.id}
+          />
+        );
 
       default:
         return renderDashboard();

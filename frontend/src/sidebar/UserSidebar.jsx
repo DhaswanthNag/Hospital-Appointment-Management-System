@@ -9,6 +9,7 @@ import {
   MdScience,
   MdPayment,
   MdHistory,
+  MdNotifications,
 } from 'react-icons/md';
 
 const UserSidebar = ({ sidebarOpen, setSidebarOpen, activeModule, setActiveModule }) => {
@@ -36,6 +37,7 @@ const UserSidebar = ({ sidebarOpen, setSidebarOpen, activeModule, setActiveModul
     { id: 'payments', name: 'Payments & Billing', icon: MdPayment },
     { id: 'lab-results', name: 'Lab Results', icon: MdScience },
     { id: 'medical-history', name: 'Medical History', icon: MdHistory },
+    { id: 'notifications', name: 'Notifications & Alerts', icon: MdNotifications },
   ];
 
   return (

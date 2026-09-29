@@ -344,54 +344,120 @@ const Reports = () => {
   }, [statusCounts]);
 
   // =========================================================
-  // APPOINTMENT BAR GRAPH DATA
+  // PRESCRIPTION STATUS BAR GRAPH DATA
   // =========================================================
 
-  const appointmentBarData = useMemo(() => {
+  const prescriptionStatusBarData = useMemo(() => {
+    const counts = {
+      Pending: 0,
+      Active: 0,
+      Completed: 0,
+      Cancelled: 0,
+    };
+
+    prescriptions.forEach((prescription) => {
+      const status = String(
+        prescription.status || ""
+      )
+        .trim()
+        .toLowerCase();
+
+      if (status.includes("pending")) {
+        counts.Pending += 1;
+      } else if (
+        status.includes("active") ||
+        status.includes("issued") ||
+        status === ""
+      ) {
+        counts.Active += 1;
+      } else if (
+        status.includes("completed") ||
+        status.includes("complete")
+      ) {
+        counts.Completed += 1;
+      } else if (
+        status.includes("cancelled") ||
+        status.includes("canceled")
+      ) {
+        counts.Cancelled += 1;
+      } else {
+        counts.Active += 1;
+      }
+    });
+
     return [
       {
         status: "Pending",
-        appointments: statusCounts.pending,
+        prescriptions: counts.Pending,
       },
       {
-        status: "Confirmed",
-        appointments: statusCounts.confirmed,
+        status: "Active",
+        prescriptions: counts.Active,
       },
       {
         status: "Completed",
-        appointments: statusCounts.completed,
+        prescriptions: counts.Completed,
       },
       {
         status: "Cancelled",
-        appointments: statusCounts.cancelled,
+        prescriptions: counts.Cancelled,
       },
     ];
-  }, [statusCounts]);
+  }, [prescriptions]);
 
   // =========================================================
-  // CLINICAL RECORD BAR GRAPH
+  // PATIENT APPOINTMENT LOAD BAR GRAPH
   // =========================================================
 
-  const clinicalRecordData = useMemo(() => {
+  const patientAppointmentLoadData = useMemo(() => {
+    const patientMap = {};
+
+    appointments.forEach((appointment) => {
+      if (!appointment.patientId) {
+        return;
+      }
+
+      const patientId = String(
+        appointment.patientId
+      );
+
+      patientMap[patientId] =
+        (patientMap[patientId] || 0) + 1;
+    });
+
+    const patientCounts =
+      Object.values(patientMap);
+
+    const oneAppointment =
+      patientCounts.filter(
+        (count) => count === 1
+      ).length;
+
+    const twoToThreeAppointments =
+      patientCounts.filter(
+        (count) => count >= 2 && count <= 3
+      ).length;
+
+    const fourOrMoreAppointments =
+      patientCounts.filter(
+        (count) => count >= 4
+      ).length;
+
     return [
       {
-        type: "Prescriptions",
-        count: prescriptions.length,
+        category: "1 Appointment",
+        patients: oneAppointment,
       },
       {
-        type: "Lab Reports",
-        count: labReports.length,
+        category: "2–3 Appointments",
+        patients: twoToThreeAppointments,
       },
       {
-        type: "Medical Records",
-        count: medicalRecords.length,
+        category: "4+ Appointments",
+        patients: fourOrMoreAppointments,
       },
     ];
-  }, [
-    prescriptions.length,
-    labReports.length,
-    medicalRecords.length,
-  ]);
+  }, [appointments]);
 
   // =========================================================
   // CLINICAL ACTIVITY PIE CHART
@@ -1041,7 +1107,7 @@ const Reports = () => {
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-6">
 
         {/* ============================================================
-            APPOINTMENT STATUS BAR GRAPH
+            PRESCRIPTION STATUS BAR GRAPH
         ============================================================ */}
 
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 md:p-6">
@@ -1050,16 +1116,16 @@ const Reports = () => {
 
             <div>
               <h2 className="text-lg font-bold text-gray-800">
-                Appointment Status Analytics
+                Prescription Status Analytics
               </h2>
 
               <p className="text-sm text-gray-500 mt-1">
-                Appointment count by status
+                Prescription count by status
               </p>
             </div>
 
             <div className="w-10 h-10 rounded-xl bg-lime-50 flex items-center justify-center">
-              <BarChart3
+              <FileText
                 className="text-lime-600"
                 size={20}
               />
@@ -1075,7 +1141,7 @@ const Reports = () => {
             >
 
               <BarChart
-                data={appointmentBarData}
+                data={prescriptionStatusBarData}
                 margin={{
                   top: 10,
                   right: 10,
@@ -1105,9 +1171,11 @@ const Reports = () => {
 
                 <Tooltip />
 
+                <Legend />
+
                 <Bar
-                  dataKey="appointments"
-                  name="Appointments"
+                  dataKey="prescriptions"
+                  name="Prescriptions"
                   fill="#84cc16"
                   radius={[
                     6,
@@ -1127,7 +1195,7 @@ const Reports = () => {
         </div>
 
         {/* ============================================================
-            CLINICAL RECORDS BAR GRAPH
+            PATIENT APPOINTMENT LOAD BAR GRAPH
         ============================================================ */}
 
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 md:p-6">
@@ -1136,16 +1204,16 @@ const Reports = () => {
 
             <div>
               <h2 className="text-lg font-bold text-gray-800">
-                Clinical Records Analytics
+                Patient Appointment Load
               </h2>
 
               <p className="text-sm text-gray-500 mt-1">
-                Records created for your patients
+                Patient distribution by appointment count
               </p>
             </div>
 
             <div className="w-10 h-10 rounded-xl bg-lime-50 flex items-center justify-center">
-              <FileText
+              <Users
                 className="text-lime-600"
                 size={20}
               />
@@ -1161,7 +1229,7 @@ const Reports = () => {
             >
 
               <BarChart
-                data={clinicalRecordData}
+                data={patientAppointmentLoadData}
                 margin={{
                   top: 10,
                   right: 10,
@@ -1176,10 +1244,11 @@ const Reports = () => {
                 />
 
                 <XAxis
-                  dataKey="type"
+                  dataKey="category"
                   tick={{
                     fontSize: 12,
                   }}
+                  interval={0}
                 />
 
                 <YAxis
@@ -1194,8 +1263,8 @@ const Reports = () => {
                 <Legend />
 
                 <Bar
-                  dataKey="count"
-                  name="Records"
+                  dataKey="patients"
+                  name="Patients"
                   fill="#a855f7"
                   radius={[
                     6,
@@ -1213,6 +1282,7 @@ const Reports = () => {
           </div>
         </div>
       </div>
+      
     </div>
   );
 };

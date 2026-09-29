@@ -65,9 +65,8 @@ public class SecurityConfig {
                         // Reports Management
                         .requestMatchers("/api/reports/**").permitAll()
 
-                        // ==============================
-                        // EVERYTHING ELSE
-                        // ==============================
+                        // Notification Management
+                        .requestMatchers("/api/notifications/**").permitAll()
 
                         .anyRequest().authenticated()
                 )

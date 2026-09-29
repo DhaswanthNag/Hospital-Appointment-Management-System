@@ -15,6 +15,7 @@ import Billingandpayment from './Billingandpayment';
 import LabReports from "./LabReports";
 import MedicalHistory from "./MedicalHistory";
 import Reports from "./Reports";
+import Notifications from "./Notifications";
 import { AuthContext } from "../../context/AuthContext";
 import api from "../../api/api";
 
@@ -903,6 +904,9 @@ const DoctorDashboard = () => {
 
       case 'reports':
         return <Reports />;
+
+      case 'notifications':
+        return <Notifications doctorId={doctor?.id} />;
 
     }
   };
