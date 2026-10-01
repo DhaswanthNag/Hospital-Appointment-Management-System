@@ -1,5 +1,52 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { MdPeople, MdSupervisedUserCircle, MdCalendarToday, MdPayment, MdReceiptLong, MdScience, MdDescription, MdAttachMoney } from 'react-icons/md';
+import {
+  // MdPeople,
+  // MdSupervisedUserCircle,
+  MdCalendarToday,
+  MdPayment,
+  // MdReceiptLong,
+  // MdScience,
+  // MdDescription,
+  MdAttachMoney
+} from 'react-icons/md';
+
+import {
+  Activity,
+  // ArrowUpRight,
+  Bell,
+  CalendarCheck,
+  CheckCircle2,
+  CircleDollarSign,
+  ClipboardList,
+  FileText,
+  // FlaskConical,
+  // HeartPulse,
+  RefreshCw,
+  Stethoscope,
+  Users,
+  WalletCards,
+  // XCircle
+} from 'lucide-react';
+
+import {
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  Tooltip,
+  Legend,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  LineChart,
+  Line,
+  AreaChart,
+  Area,
+  ReferenceLine
+} from 'recharts';
+
 import AdminSidebar from "../../sidebar/AdminSidebar";
 import DoctorManagement from "./DoctorManagement";
 import PatientManagement from "./PatientManagement";
@@ -24,6 +71,7 @@ const Dashboard = () => {
   const [billings, setBillings] = useState([]);
   const [labReports, setLabReports] = useState([]);
   const [medicalRecords, setMedicalRecords] = useState([]);
+  const [notifications, setNotifications] = useState([]);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -41,7 +89,8 @@ const Dashboard = () => {
         prescriptionsResponse,
         billingResponse,
         labReportsResponse,
-        medicalRecordsResponse
+        medicalRecordsResponse,
+        notificationsResponse
       ] = await Promise.all([
         api.get("/api/patients"),
         api.get("/api/doctors"),
@@ -49,7 +98,8 @@ const Dashboard = () => {
         api.get("/api/prescriptions"),
         api.get("/api/billing"),
         api.get("/api/lab-reports"),
-        api.get("/api/medical-records")
+        api.get("/api/medical-records"),
+        api.get("/api/notifications")
       ]);
 
       const patientData = Array.isArray(
@@ -94,6 +144,12 @@ const Dashboard = () => {
         ? medicalRecordsResponse.data
         : [];
 
+      const notificationData = Array.isArray(
+        notificationsResponse.data
+      )
+        ? notificationsResponse.data
+        : [];
+
       setPatients(patientData);
       setDoctors(doctorData);
       setAppointments(appointmentData);
@@ -101,6 +157,7 @@ const Dashboard = () => {
       setBillings(billingData);
       setLabReports(labReportData);
       setMedicalRecords(medicalRecordData);
+      setNotifications(notificationData);
 
       console.log(
         "Admin Dashboard - Patients:",
@@ -136,6 +193,11 @@ const Dashboard = () => {
         "Admin Dashboard - Medical Records:",
         medicalRecordData
       );
+
+      console.log(
+        "Admin Dashboard - Notifications:",
+        notificationData
+      );
     } catch (err) {
       console.error(
         "Admin Dashboard - Failed to load dashboard data:",
@@ -154,6 +216,7 @@ const Dashboard = () => {
       setBillings([]);
       setLabReports([]);
       setMedicalRecords([]);
+      setNotifications([]);
 
       setError(
         err?.response?.data?.message ||
@@ -437,7 +500,7 @@ const Dashboard = () => {
         .toLowerCase()
     ) {
       case 'confirmed':
-        return 'bg-green-100 text-green-800';
+        return 'bg-lime-100 text-lime-800';
 
       case 'pending':
         return 'bg-yellow-100 text-yellow-800';
@@ -446,16 +509,576 @@ const Dashboard = () => {
         return 'bg-red-100 text-red-800';
 
       case 'completed':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-lime-200 text-lime-900';
 
       case 'rescheduled':
-        return 'bg-purple-100 text-purple-800';
+        return 'bg-lime-50 text-lime-800';
 
       default:
         return 'bg-gray-100 text-gray-800';
     }
   };
 
+  /* ============================================================
+     PROFESSIONAL DASHBOARD ANALYTICS
+  ============================================================ */
+
+  const chartTooltipStyle = {
+    backgroundColor: "#111827",
+    border: "1px solid #84cc16",
+    borderRadius: "10px",
+    color: "#ffffff"
+  };
+
+  const chartGridColor = "#e5e7eb";
+
+  const limeGradientId = "dashboardLimeGradient";
+  const limeGradientDarkId = "dashboardLimeGradientDark";
+
+  /* ============================================================
+     APPOINTMENT STATUS DONUT
+  ============================================================ */
+
+  const appointmentStatusData = useMemo(() => {
+    return [
+      {
+        name: "Pending",
+        value: appointmentStats.pending
+      },
+      {
+        name: "Confirmed",
+        value: appointmentStats.confirmed
+      },
+      {
+        name: "Completed",
+        value: appointmentStats.completed
+      },
+      {
+        name: "Cancelled",
+        value: appointmentStats.cancelled
+      }
+    ];
+  }, [appointmentStats]);
+
+  const appointmentStatusColors = [
+    "#bef264",
+    "#84cc16",
+    "#65a30d",
+    "#ef4444"
+  ];
+
+  /* ============================================================
+     BILLING STATUS DONUT
+  ============================================================ */
+
+  const billingStatusData = useMemo(() => {
+    return [
+      {
+        name: "Paid",
+        value: billingStats.paidBills
+      },
+      {
+        name: "Partial",
+        value: billingStats.partialBills
+      },
+      {
+        name: "Pending",
+        value: billingStats.pendingBills
+      }
+    ];
+  }, [billingStats]);
+
+  const billingStatusColors = [
+    "#84cc16",
+    "#a3e635",
+    "#facc15"
+  ];
+
+  /* ============================================================
+     SYSTEM MODULE BAR CHART
+  ============================================================ */
+
+  const systemModuleData = useMemo(() => {
+    return [
+      {
+        module: "Patients",
+        records: patients.length
+      },
+      {
+        module: "Doctors",
+        records: doctors.length
+      },
+      {
+        module: "Appointments",
+        records: appointments.length
+      },
+      {
+        module: "Prescriptions",
+        records: prescriptions.length
+      },
+      {
+        module: "Bills",
+        records: billings.length
+      },
+      {
+        module: "Lab Reports",
+        records: labReports.length
+      },
+      {
+        module: "Medical Records",
+        records: medicalRecords.length
+      }
+    ];
+  }, [
+    patients,
+    doctors,
+    appointments,
+    prescriptions,
+    billings,
+    labReports,
+    medicalRecords
+  ]);
+
+  /* ============================================================
+     DOCTOR WORKLOAD HISTOGRAM
+  ============================================================ */
+
+  const doctorWorkloadData = useMemo(() => {
+    const workloadMap = {};
+
+    doctors.forEach((doctor) => {
+      workloadMap[doctor.id] = {
+        doctorId: doctor.id,
+        doctor:
+          doctor.name ||
+          doctor.id ||
+          "Doctor",
+        appointments: 0,
+        prescriptions: 0
+      };
+    });
+
+    appointments.forEach((appointment) => {
+      const doctorId =
+        appointment?.doctorId ||
+        appointment?.doctor?.id;
+
+      if (
+        doctorId &&
+        workloadMap[String(doctorId)]
+      ) {
+        workloadMap[String(doctorId)].appointments += 1;
+      }
+    });
+
+    prescriptions.forEach((prescription) => {
+      const doctorId =
+        prescription?.doctorId ||
+        prescription?.doctor?.id;
+
+      if (
+        doctorId &&
+        workloadMap[String(doctorId)]
+      ) {
+        workloadMap[String(doctorId)].prescriptions += 1;
+      }
+    });
+
+    return Object.values(workloadMap)
+      .sort(
+        (a, b) =>
+          b.appointments -
+          a.appointments
+      )
+      .slice(0, 8);
+  }, [
+    doctors,
+    appointments,
+    prescriptions
+  ]);
+
+  /* ============================================================
+     MONTHLY ACTIVITY DATA
+     ============================================================ */
+
+  const monthlyActivityData = useMemo(() => {
+    const months = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec"
+    ];
+
+    const currentYear =
+      new Date().getFullYear();
+
+    const data = months.map(
+      (month, index) => ({
+        month,
+        appointments: 0,
+        prescriptions: 0,
+        labReports: 0,
+        medicalRecords: 0,
+        monthIndex: index
+      })
+    );
+
+    appointments.forEach(
+      (appointment) => {
+        if (!appointment.date) return;
+
+        const date =
+          new Date(appointment.date);
+
+        if (
+          date.getFullYear() ===
+          currentYear
+        ) {
+          data[
+            date.getMonth()
+          ].appointments += 1;
+        }
+      }
+    );
+
+    prescriptions.forEach(
+      (prescription) => {
+        const value =
+          prescription.prescriptionDate ||
+          prescription.date ||
+          prescription.createdAt;
+
+        if (!value) return;
+
+        const date =
+          new Date(value);
+
+        if (
+          date.getFullYear() ===
+          currentYear
+        ) {
+          data[
+            date.getMonth()
+          ].prescriptions += 1;
+        }
+      }
+    );
+
+    labReports.forEach(
+      (report) => {
+        const value =
+          report.reportDate ||
+          report.date ||
+          report.createdAt;
+
+        if (!value) return;
+
+        const date =
+          new Date(value);
+
+        if (
+          date.getFullYear() ===
+          currentYear
+        ) {
+          data[
+            date.getMonth()
+          ].labReports += 1;
+        }
+      }
+    );
+
+    medicalRecords.forEach(
+      (record) => {
+        const value =
+          record.recordDate ||
+          record.date ||
+          record.createdAt;
+
+        if (!value) return;
+
+        const date =
+          new Date(value);
+
+        if (
+          date.getFullYear() ===
+          currentYear
+        ) {
+          data[
+            date.getMonth()
+          ].medicalRecords += 1;
+        }
+      }
+    );
+
+    return data;
+  }, [
+    appointments,
+    prescriptions,
+    labReports,
+    medicalRecords
+  ]);
+
+  /* ============================================================
+     RANGE / MOUNTAIN GRAPH DATA
+  ============================================================ */
+
+  const activityRangeData = useMemo(() => {
+    return monthlyActivityData.map(
+      (item) => ({
+        month: item.month,
+        lower:
+          Math.max(
+            0,
+            item.appointments -
+              Math.round(
+                item.appointments *
+                  0.35
+              )
+          ),
+        activity:
+          item.appointments +
+          item.prescriptions +
+          item.labReports,
+        upper:
+          item.appointments +
+          item.prescriptions +
+          item.labReports +
+          item.medicalRecords
+      })
+    );
+  }, [monthlyActivityData]);
+
+  /* ============================================================
+     PRESCRIPTION STATUS HISTOGRAM
+  ============================================================ */
+
+  const prescriptionStatusData = useMemo(() => {
+    const counts = {
+      Pending: 0,
+      Active: 0,
+      Completed: 0,
+      Cancelled: 0
+    };
+
+    prescriptions.forEach(
+      (prescription) => {
+        const status = String(
+          prescription.status || ""
+        )
+          .trim()
+          .toLowerCase();
+
+        if (
+          status.includes("pending")
+        ) {
+          counts.Pending += 1;
+        } else if (
+          status.includes("active") ||
+          status.includes("issued") ||
+          status === ""
+        ) {
+          counts.Active += 1;
+        } else if (
+          status.includes(
+            "completed"
+          ) ||
+          status.includes(
+            "complete"
+          )
+        ) {
+          counts.Completed += 1;
+        } else if (
+          status.includes(
+            "cancelled"
+          ) ||
+          status.includes(
+            "canceled"
+          )
+        ) {
+          counts.Cancelled += 1;
+        } else {
+          counts.Active += 1;
+        }
+      }
+    );
+
+    return [
+      {
+        status: "Pending",
+        prescriptions: counts.Pending
+      },
+      {
+        status: "Active",
+        prescriptions: counts.Active
+      },
+      {
+        status: "Completed",
+        prescriptions: counts.Completed
+      },
+      {
+        status: "Cancelled",
+        prescriptions: counts.Cancelled
+      }
+    ];
+  }, [prescriptions]);
+
+  /* ============================================================
+     NOTIFICATION ANALYTICS
+  ============================================================ */
+
+  const notificationData = useMemo(() => {
+    const doctorNotifications =
+      notifications.filter(
+        (notification) =>
+          String(
+            notification.recipientType ||
+              ""
+          ).toUpperCase() ===
+          "DOCTOR"
+      ).length;
+
+    const patientNotifications =
+      notifications.filter(
+        (notification) =>
+          String(
+            notification.recipientType ||
+              ""
+          ).toUpperCase() ===
+          "PATIENT"
+      ).length;
+
+    const unreadNotifications =
+      notifications.filter(
+        (notification) =>
+          !notification.read
+      ).length;
+
+    const readNotifications =
+      notifications.filter(
+        (notification) =>
+          notification.read
+      ).length;
+
+    return {
+      doctorNotifications,
+      patientNotifications,
+      unreadNotifications,
+      readNotifications
+    };
+  }, [notifications]);
+
+  /* ============================================================
+     RECENT DASHBOARD ACTIVITY
+  ============================================================ */
+
+  const dashboardActivity = useMemo(() => {
+    const activities = [];
+
+    appointments
+      .slice()
+      .sort(
+        (a, b) =>
+          new Date(
+            `${b.date || "1900-01-01"}T${
+              b.time || "00:00"
+            }`
+          ) -
+          new Date(
+            `${a.date || "1900-01-01"}T${
+              a.time || "00:00"
+            }`
+          )
+      )
+      .slice(0, 4)
+      .forEach(
+        (appointment) => {
+          activities.push({
+            type: "Appointment",
+            title:
+              "Appointment activity",
+            detail:
+              `${getPatientName(
+                appointment
+              )} with ${getDoctorName(
+                appointment
+              )}`,
+            date:
+              appointment.date ||
+              "Date unavailable",
+            icon: CalendarCheck
+          });
+        }
+      );
+
+    notifications
+      .slice(0, 3)
+      .forEach(
+        (notification) => {
+          activities.push({
+            type: "Notification",
+            title:
+              notification.title ||
+              "Notification",
+            detail:
+              notification.message ||
+              "Notification activity",
+            date:
+              notification.createdAt ||
+              "Recent",
+            icon: Bell
+          });
+        }
+      );
+
+    return activities.slice(0, 7);
+  }, [
+    appointments,
+    notifications,
+    getPatientName,
+    getDoctorName
+  ]);
+
+  /* ============================================================
+     DASHBOARD HERO VALUES
+  ============================================================ */
+
+  const dashboardOverview = useMemo(() => {
+    return {
+      totalPatients:
+        patients.length,
+      totalDoctors:
+        doctors.length,
+      totalAppointments:
+        appointments.length,
+      totalPrescriptions:
+        prescriptions.length,
+      totalBills:
+        billings.length,
+      totalLabReports:
+        labReports.length,
+      totalMedicalRecords:
+        medicalRecords.length,
+      totalNotifications:
+        notifications.length
+    };
+  }, [
+    patients,
+    doctors,
+    appointments,
+    prescriptions,
+    billings,
+    labReports,
+    medicalRecords,
+    notifications
+  ]);
 
   // SWITCH CASE MODULE RENDERING
   
@@ -463,596 +1086,1783 @@ const Dashboard = () => {
     switch (activeModule) {
       case "dashboard":
         return (
-          <>
-            {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div className="space-y-6">
 
-              {/* Total Patients */}
-              <div className="bg-white rounded-xl shadow-sm p-6 border-l-4 border-lime-500">
-                <div className="flex justify-between items-start">
+            {/* ============================================================
+                PROFESSIONAL DASHBOARD HEADER
+            ============================================================ */}
+
+            <div className="relative overflow-hidden rounded-3xl bg-gray-950 text-white shadow-xl border border-lime-500/20">
+
+              <div className="absolute inset-0 opacity-20">
+                <div className="absolute -right-24 -top-24 h-72 w-72 rounded-full bg-lime-400 blur-3xl" />
+                <div className="absolute -left-20 -bottom-32 h-72 w-72 rounded-full bg-lime-500 blur-3xl" />
+              </div>
+
+              <div className="relative p-6 md:p-8">
+
+                <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-6">
 
                   <div>
-                    <p className="text-gray-500 text-sm">
-                      Total Patients
+
+                    <div className="inline-flex items-center gap-2 rounded-full border border-lime-400/30 bg-lime-400/10 px-3 py-1.5 text-xs font-semibold text-lime-300 mb-4">
+
+                      <Activity size={14} />
+
+                      HAMS ADMIN ANALYTICS
+
+                    </div>
+
+                    <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold tracking-tight">
+
+                      Hospital Management
+                      <span className="text-lime-400">
+                        {" "}Overview
+                      </span>
+
+                    </h1>
+
+                    <p className="text-gray-400 mt-2 max-w-2xl text-sm md:text-base">
+
+                      Real-time operational analytics across
+                      patients, doctors, appointments,
+                      prescriptions, billing, laboratory
+                      reports and medical records.
+
                     </p>
 
-                    <h3 className="text-2xl font-bold text-gray-800 mt-2">
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={loadDashboardData}
+                    disabled={loading}
+                    className="inline-flex items-center justify-center gap-2 rounded-xl border border-lime-400/30 bg-lime-400/10 px-5 py-3 text-sm font-semibold text-lime-300 hover:bg-lime-400/20 hover:border-lime-400/60 transition disabled:opacity-50"
+                  >
+
+                    <RefreshCw
+                      size={17}
+                      className={
+                        loading
+                          ? "animate-spin"
+                          : ""
+                      }
+                    />
+
+                    {loading
+                      ? "Refreshing..."
+                      : "Refresh Dashboard"}
+
+                  </button>
+
+                </div>
+
+                {/* ============================================================
+                    SINGLE SYSTEM OVERVIEW STRIP
+                ============================================================ */}
+
+                <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-3 mt-8">
+
+                  <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
+                    <p className="text-[11px] text-gray-400">
+                      Patients
+                    </p>
+                    <p className="text-xl font-bold text-lime-300 mt-1">
                       {loading
                         ? "..."
-                        : patients.length}
-                    </h3>
-
-                    <p className="text-lime-600 text-sm mt-1">
-                      Current database count
+                        : dashboardOverview.totalPatients}
                     </p>
                   </div>
 
-                  <div className="bg-lime-100 p-3 rounded-lg text-lime-600">
-                    <MdPeople className="text-2xl" />
+                  <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
+                    <p className="text-[11px] text-gray-400">
+                      Doctors
+                    </p>
+                    <p className="text-xl font-bold text-lime-300 mt-1">
+                      {loading
+                        ? "..."
+                        : dashboardOverview.totalDoctors}
+                    </p>
+                  </div>
+
+                  <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
+                    <p className="text-[11px] text-gray-400">
+                      Appointments
+                    </p>
+                    <p className="text-xl font-bold text-lime-300 mt-1">
+                      {loading
+                        ? "..."
+                        : dashboardOverview.totalAppointments}
+                    </p>
+                  </div>
+
+                  <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
+                    <p className="text-[11px] text-gray-400">
+                      Prescriptions
+                    </p>
+                    <p className="text-xl font-bold text-lime-300 mt-1">
+                      {loading
+                        ? "..."
+                        : dashboardOverview.totalPrescriptions}
+                    </p>
+                  </div>
+
+                  <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
+                    <p className="text-[11px] text-gray-400">
+                      Bills
+                    </p>
+                    <p className="text-xl font-bold text-lime-300 mt-1">
+                      {loading
+                        ? "..."
+                        : dashboardOverview.totalBills}
+                    </p>
+                  </div>
+
+                  <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
+                    <p className="text-[11px] text-gray-400">
+                      Labs
+                    </p>
+                    <p className="text-xl font-bold text-lime-300 mt-1">
+                      {loading
+                        ? "..."
+                        : dashboardOverview.totalLabReports}
+                    </p>
+                  </div>
+
+                  <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
+                    <p className="text-[11px] text-gray-400">
+                      Records
+                    </p>
+                    <p className="text-xl font-bold text-lime-300 mt-1">
+                      {loading
+                        ? "..."
+                        : dashboardOverview.totalMedicalRecords}
+                    </p>
+                  </div>
+
+                  <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
+                    <p className="text-[11px] text-gray-400">
+                      Alerts
+                    </p>
+                    <p className="text-xl font-bold text-lime-300 mt-1">
+                      {loading
+                        ? "..."
+                        : dashboardOverview.totalNotifications}
+                    </p>
                   </div>
 
                 </div>
-              </div>
 
-              {/* Total Doctors */}
-              <div className="bg-white rounded-xl shadow-sm p-6 border-l-4 border-lime-500">
-                <div className="flex justify-between items-start">
-
-                  <div>
-                    <p className="text-gray-500 text-sm">
-                      Total Doctors
-                    </p>
-
-                    <h3 className="text-2xl font-bold text-gray-800 mt-2">
-                      {loading
-                        ? "..."
-                        : doctors.length}
-                    </h3>
-
-                    <p className="text-lime-600 text-sm mt-1">
-                      Current database count
-                    </p>
-                  </div>
-
-                  <div className="bg-lime-100 p-3 rounded-lg text-lime-600">
-                    <MdSupervisedUserCircle className="text-2xl" />
-                  </div>
-
-                </div>
-              </div>
-
-              {/* Appointments Today */}
-              <div className="bg-white rounded-xl shadow-sm p-6 border-l-4 border-lime-500">
-                <div className="flex justify-between items-start">
-
-                  <div>
-                    <p className="text-gray-500 text-sm">
-                      Appointments Today
-                    </p>
-
-                    <h3 className="text-2xl font-bold text-gray-800 mt-2">
-                      {loading
-                        ? "..."
-                        : appointmentStats.today}
-                    </h3>
-
-                    <p className="text-lime-600 text-sm mt-1">
-                      Real appointment count
-                    </p>
-                  </div>
-
-                  <div className="bg-lime-100 p-3 rounded-lg text-lime-600">
-                    <MdCalendarToday className="text-2xl" />
-                  </div>
-
-                </div>
-              </div>
-
-              {/* Total Prescriptions */}
-              <div className="bg-white rounded-xl shadow-sm p-6 border-l-4 border-lime-500">
-                <div className="flex justify-between items-start">
-
-                  <div>
-                    <p className="text-gray-500 text-sm">
-                      Total Prescriptions
-                    </p>
-
-                    <h3 className="text-2xl font-bold text-gray-800 mt-2">
-                      {loading
-                        ? "..."
-                        : prescriptions.length}
-                    </h3>
-
-                    <p className="text-lime-600 text-sm mt-1">
-                      Current database count
-                    </p>
-                  </div>
-
-                  <div className="bg-lime-100 p-3 rounded-lg text-lime-600">
-                    <MdPayment className="text-2xl" />
-                  </div>
-
-                </div>
-              </div>
-
-              {/* Total Bills */}
-              <div className="bg-white rounded-xl shadow-sm p-6 border-l-4 border-lime-500">
-                <div className="flex justify-between items-start">
-
-                  <div>
-                    <p className="text-gray-500 text-sm">
-                      Total Bills
-                    </p>
-
-                    <h3 className="text-2xl font-bold text-gray-800 mt-2">
-                      {loading
-                        ? "..."
-                        : billingStats.totalBills}
-                    </h3>
-
-                    <p className="text-lime-600 text-sm mt-1">
-                      Billing records
-                    </p>
-                  </div>
-
-                  <div className="bg-lime-100 p-3 rounded-lg text-lime-600">
-                    <MdReceiptLong className="text-2xl" />
-                  </div>
-
-                </div>
-              </div>
-
-              {/* Pending Bills */}
-              <div className="bg-white rounded-xl shadow-sm p-6 border-l-4 border-lime-500">
-                <div className="flex justify-between items-start">
-
-                  <div>
-                    <p className="text-gray-500 text-sm">
-                      Pending Bills
-                    </p>
-
-                    <h3 className="text-2xl font-bold text-gray-800 mt-2">
-                      {loading
-                        ? "..."
-                        : billingStats.pendingBills}
-                    </h3>
-
-                    <p className="text-lime-600 text-sm mt-1">
-                      Payment pending
-                    </p>
-                  </div>
-
-                  <div className="bg-lime-100 p-3 rounded-lg text-lime-600">
-                    <MdReceiptLong className="text-2xl" />
-                  </div>
-
-                </div>
-              </div>
-
-              {/* Partial Bills */}
-              <div className="bg-white rounded-xl shadow-sm p-6 border-l-4 border-lime-500">
-                <div className="flex justify-between items-start">
-
-                  <div>
-                    <p className="text-gray-500 text-sm">
-                      Partial Bills
-                    </p>
-
-                    <h3 className="text-2xl font-bold text-gray-800 mt-2">
-                      {loading
-                        ? "..."
-                        : billingStats.partialBills}
-                    </h3>
-
-                    <p className="text-lime-600 text-sm mt-1">
-                      Partially paid
-                    </p>
-                  </div>
-
-                  <div className="bg-lime-100 p-3 rounded-lg text-lime-600">
-                    <MdPayment className="text-2xl" />
-                  </div>
-
-                </div>
-              </div>
-
-              {/* Total Billing Amount */}
-              <div className="bg-white rounded-xl shadow-sm p-6 border-l-4 border-lime-500">
-                <div className="flex justify-between items-start">
-
-                  <div>
-                    <p className="text-gray-500 text-sm">
-                      Total Billing Amount
-                    </p>
-
-                    <h3 className="text-2xl font-bold text-gray-800 mt-2">
-                      {loading
-                        ? "..."
-                        : formatCurrency(
-                            billingStats.totalBillingAmount
-                          )}
-                    </h3>
-
-                    <p className="text-lime-600 text-sm mt-1">
-                      Total invoice value
-                    </p>
-                  </div>
-
-                  <div className="bg-lime-100 p-3 rounded-lg text-lime-600">
-                    <MdAttachMoney className="text-2xl" />
-                  </div>
-
-                </div>
-              </div>
-
-            </div>
-
-            {/* Billing Summary */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-
-              {/* Paid Amount */}
-              <div className="bg-white rounded-xl shadow-sm p-5 border border-lime-100">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <p className="text-sm text-gray-500">
-                      Paid Amount
-                    </p>
-
-                    <p className="text-2xl font-bold text-emerald-700 mt-1">
-                      {loading
-                        ? "..."
-                        : formatCurrency(
-                            billingStats.paidAmount
-                          )}
-                    </p>
-
-                    <p className="text-xs text-gray-400 mt-1">
-                      {billingStats.paidBills} fully paid bill(s)
-                    </p>
-                  </div>
-
-                  <div className="bg-lime-50 p-3 rounded-lg text-emerald-600">
-                    <MdPayment className="text-2xl" />
-                  </div>
-                </div>
-              </div>
-
-              {/* Due Amount */}
-              <div className="bg-white rounded-xl shadow-sm p-5 border border-lime-100">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <p className="text-sm text-gray-500">
-                      Due Amount
-                    </p>
-
-                    <p className="text-2xl font-bold text-red-600 mt-1">
-                      {loading
-                        ? "..."
-                        : formatCurrency(
-                            billingStats.dueAmount
-                          )}
-                    </p>
-
-                    <p className="text-xs text-gray-400 mt-1">
-                      Outstanding payments
-                    </p>
-                  </div>
-
-                  <div className="bg-lime-50 p-3 rounded-lg text-red-600">
-                    <MdReceiptLong className="text-2xl" />
-                  </div>
-                </div>
-              </div>
-
-              {/* Total Billing Records */}
-              <div className="bg-white rounded-xl shadow-sm p-5 border border-lie-100">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <p className="text-sm text-gray-500">
-                      Billing Records
-                    </p>
-
-                    <p className="text-2xl font-bold text-purple-700 mt-1">
-                      {loading
-                        ? "..."
-                        : billings.length}
-                    </p>
-
-                    <p className="text-xs text-gray-400 mt-1">
-                      Total bills in database
-                    </p>
-                  </div>
-
-                  <div className="bg-lime-50 p-3 rounded-lg text-purple-600">
-                    <MdReceiptLong className="text-2xl" />
-                  </div>
-                </div>
-              </div>
-
-            </div>
-
-            {/* Other Module Summary */}
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
-
-              {/* Total Appointments */}
-              <div className="bg-white rounded-xl shadow-sm p-5 border border-gray-100">
-                <div className="flex items-center gap-4">
-                  <div className="bg-lime-100 p-3 rounded-lg text-lime-600">
-                    <MdCalendarToday className="text-2xl" />
-                  </div>
-
-                  <div>
-                    <p className="text-sm text-gray-500">
-                      Total Appointments
-                    </p>
-
-                    <p className="text-2xl font-bold text-gray-800">
-                      {loading
-                        ? "..."
-                        : appointmentStats.total}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Laboratory Reports */}
-              <div className="bg-white rounded-xl shadow-sm p-5 border border-gray-100">
-                <div className="flex items-center gap-4">
-                  <div className="bg-lime-100 p-3 rounded-lg text-lime-600">
-                    <MdScience className="text-2xl" />
-                  </div>
-
-                  <div>
-                    <p className="text-sm text-gray-500">
-                      Laboratory Reports
-                    </p>
-
-                    <p className="text-2xl font-bold text-gray-800">
-                      {loading
-                        ? "..."
-                        : labReports.length}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Medical Records */}
-              <div className="bg-white rounded-xl shadow-sm p-5 border border-gray-100">
-                <div className="flex items-center gap-4">
-                  <div className="bg-lime-100 p-3 rounded-lg text-lime-600">
-                    <MdDescription className="text-2xl" />
-                  </div>
-
-                  <div>
-                    <p className="text-sm text-gray-500">
-                      Medical Records
-                    </p>
-
-                    <p className="text-2xl font-bold text-gray-800">
-                      {loading
-                        ? "..."
-                        : medicalRecords.length}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Appointment Status Summary */}
-              <div className="bg-white rounded-xl shadow-sm p-5 border border-gray-100">
-                <div className="flex items-center gap-4">
-                  <div className="bg-lime-100 p-3 rounded-lg text-lime-600">
-                    <MdPeople className="text-2xl" />
-                  </div>
-
-                  <div>
-                    <p className="text-sm text-gray-500">
-                      Confirmed Appointments
-                    </p>
-
-                    <p className="text-2xl font-bold text-gray-800">
-                      {loading
-                        ? "..."
-                        : appointmentStats.confirmed}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-            </div>
-
-            {/* Dashboard Appointment Summary */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-
-              <div className="bg-white rounded-xl shadow-sm p-5 border border-gray-100">
-                <p className="text-sm text-gray-500">
-                  Total Appointments
-                </p>
-
-                <p className="text-2xl font-bold text-gray-800 mt-1">
-                  {loading
-                    ? "..."
-                    : appointmentStats.total}
-                </p>
-              </div>
-
-              <div className="bg-white rounded-xl shadow-sm p-5 border border-gray-100">
-                <p className="text-sm text-gray-500">
-                  Pending
-                </p>
-
-                <p className="text-2xl font-bold text-yellow-600 mt-1">
-                  {loading
-                    ? "..."
-                    : appointmentStats.pending}
-                </p>
-              </div>
-
-              <div className="bg-white rounded-xl shadow-sm p-5 border border-gray-100">
-                <p className="text-sm text-gray-500">
-                  Confirmed
-                </p>
-
-                <p className="text-2xl font-bold text-green-600 mt-1">
-                  {loading
-                    ? "..."
-                    : appointmentStats.confirmed}
-                </p>
-              </div>
-
-              <div className="bg-white rounded-xl shadow-sm p-5 border border-gray-100">
-                <p className="text-sm text-gray-500">
-                  Completed
-                </p>
-
-                <p className="text-2xl font-bold text-blue-600 mt-1">
-                  {loading
-                    ? "..."
-                    : appointmentStats.completed}
-                </p>
               </div>
 
             </div>
 
             {/* Error Message */}
             {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg p-4 mb-8">
+              <div className="bg-red-50 border border-red-200 text-red-700 rounded-2xl p-4">
                 {error}
               </div>
             )}
 
-            {/* Recent Appointments */}
-            <div className="bg-white rounded-xl shadow-sm p-6">
+            {/* ============================================================
+                TOP ANALYTICS — DONUT CHARTS
+            ============================================================ */}
 
-              <div className="flex justify-between items-center mb-6">
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
 
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-800">
-                    Recent Appointments
-                  </h3>
+              {/* Appointment Status Donut */}
 
-                  <p className="text-sm text-gray-500 mt-1">
-                    Latest appointments from the backend
-                  </p>
+              <div className="bg-white rounded-3xl border border-gray-200 shadow-sm overflow-hidden">
+
+                <div className="p-5 md:p-6 border-b border-gray-100">
+
+                  <div className="flex items-center justify-between">
+
+                    <div>
+
+                      <p className="text-xs font-semibold uppercase tracking-wider text-lime-600">
+                        Appointment Analytics
+                      </p>
+
+                      <h2 className="text-xl font-bold text-gray-800 mt-1">
+                        Appointments By Status
+                      </h2>
+
+                    </div>
+
+                    <div className="w-11 h-11 rounded-xl bg-lime-50 flex items-center justify-center text-lime-600">
+                      <CalendarCheck size={21} />
+                    </div>
+
+                  </div>
+
                 </div>
 
-                <button
-                  type="button"
-                  onClick={loadDashboardData}
-                  disabled={loading}
-                  className="text-lime-600 hover:text-lime-700 font-medium disabled:opacity-50"
-                >
-                  {loading
-                    ? "Refreshing..."
-                    : "Refresh"}
-                </button>
+                <div className="h-[330px] p-4">
+
+                  <ResponsiveContainer
+                    width="100%"
+                    height="100%"
+                  >
+
+                    <PieChart>
+
+                      <Pie
+                        data={
+                          appointmentStatusData
+                        }
+                        cx="42%"
+                        cy="50%"
+                        innerRadius={72}
+                        outerRadius={112}
+                        paddingAngle={4}
+                        dataKey="value"
+                        stroke="none"
+                      >
+
+                        {appointmentStatusData.map(
+                          (entry, index) => (
+                            <Cell
+                              key={
+                                entry.name
+                              }
+                              fill={
+                                appointmentStatusColors[
+                                  index %
+                                    appointmentStatusColors.length
+                                ]
+                              }
+                            />
+                          )
+                        )}
+
+                      </Pie>
+
+                      <Tooltip
+                        contentStyle={
+                          chartTooltipStyle
+                        }
+                      />
+
+                      <Legend
+                        verticalAlign="middle"
+                        align="right"
+                        layout="vertical"
+                        iconType="circle"
+                      />
+
+                    </PieChart>
+
+                  </ResponsiveContainer>
+
+                </div>
+
+                <div className="px-6 pb-5">
+
+                  <div className="flex items-center justify-between rounded-2xl bg-lime-50 border border-lime-100 px-4 py-3">
+
+                    <div>
+                      <p className="text-xs text-gray-500">
+                        Total appointments
+                      </p>
+                      <p className="text-lg font-bold text-gray-800">
+                        {appointmentStats.total}
+                      </p>
+                    </div>
+
+                    <div className="text-right">
+                      <p className="text-xs text-gray-500">
+                        Today
+                      </p>
+                      <p className="text-lg font-bold text-lime-700">
+                        {appointmentStats.today}
+                      </p>
+                    </div>
+
+                  </div>
+
+                </div>
 
               </div>
 
-              <div className="overflow-x-auto">
+              {/* Billing Status Donut */}
 
-                {loading ? (
-                  <div className="py-10 text-center text-gray-500">
-                    Loading appointments...
+              <div className="bg-white rounded-3xl border border-gray-200 shadow-sm overflow-hidden">
+
+                <div className="p-5 md:p-6 border-b border-gray-100">
+
+                  <div className="flex items-center justify-between">
+
+                    <div>
+
+                      <p className="text-xs font-semibold uppercase tracking-wider text-lime-600">
+                        Financial Analytics
+                      </p>
+
+                      <h2 className="text-xl font-bold text-gray-800 mt-1">
+                        Billing Status Distribution
+                      </h2>
+
+                    </div>
+
+                    <div className="w-11 h-11 rounded-xl bg-lime-50 flex items-center justify-center text-lime-600">
+                      <WalletCards size={21} />
+                    </div>
+
                   </div>
-                ) : recentAppointments.length === 0 ? (
-                  <div className="py-10 text-center">
 
-                    <MdCalendarToday className="text-4xl text-gray-300 mx-auto" />
+                </div>
 
-                    <p className="text-gray-500 mt-3">
-                      No appointments found.
-                    </p>
+                <div className="h-[330px] p-4">
+
+                  <ResponsiveContainer
+                    width="100%"
+                    height="100%"
+                  >
+
+                    <PieChart>
+
+                      <Pie
+                        data={
+                          billingStatusData
+                        }
+                        cx="42%"
+                        cy="50%"
+                        innerRadius={72}
+                        outerRadius={112}
+                        paddingAngle={4}
+                        dataKey="value"
+                        stroke="none"
+                      >
+
+                        {billingStatusData.map(
+                          (entry, index) => (
+                            <Cell
+                              key={
+                                entry.name
+                              }
+                              fill={
+                                billingStatusColors[
+                                  index %
+                                    billingStatusColors.length
+                                ]
+                              }
+                            />
+                          )
+                        )}
+
+                      </Pie>
+
+                      <Tooltip
+                        contentStyle={
+                          chartTooltipStyle
+                        }
+                      />
+
+                      <Legend
+                        verticalAlign="middle"
+                        align="right"
+                        layout="vertical"
+                        iconType="circle"
+                      />
+
+                    </PieChart>
+
+                  </ResponsiveContainer>
+
+                </div>
+
+                <div className="px-6 pb-5">
+
+                  <div className="grid grid-cols-3 gap-3">
+
+                    <div className="rounded-2xl bg-lime-50 p-3">
+                      <p className="text-xs text-gray-500">
+                        Paid
+                      </p>
+                      <p className="font-bold text-lime-700 mt-1">
+                        {formatCurrency(
+                          billingStats.paidAmount
+                        )}
+                      </p>
+                    </div>
+
+                    <div className="rounded-2xl bg-gray-50 p-3">
+                      <p className="text-xs text-gray-500">
+                        Due
+                      </p>
+                      <p className="font-bold text-red-600 mt-1">
+                        {formatCurrency(
+                          billingStats.dueAmount
+                        )}
+                      </p>
+                    </div>
+
+                    <div className="rounded-2xl bg-lime-50 p-3">
+                      <p className="text-xs text-gray-500">
+                        Bills
+                      </p>
+                      <p className="font-bold text-gray-800 mt-1">
+                        {billingStats.totalBills}
+                      </p>
+                    </div>
 
                   </div>
-                ) : (
-                  <table className="w-full">
 
-                    <thead>
-                      <tr className="text-left text-gray-500 border-b">
-
-                        <th className="pb-3">
-                          Patient
-                        </th>
-
-                        <th className="pb-3">
-                          Doctor
-                        </th>
-
-                        <th className="pb-3">
-                          Date
-                        </th>
-
-                        <th className="pb-3">
-                          Time
-                        </th>
-
-                        <th className="pb-3">
-                          Status
-                        </th>
-
-                      </tr>
-                    </thead>
-
-                    <tbody>
-
-                      {recentAppointments.map(
-                        (appointment) => (
-
-                          <tr
-                            key={appointment.id}
-                            className="border-b border-gray-100 hover:bg-gray-50"
-                          >
-
-                            <td className="py-4">
-                              {getPatientName(
-                                appointment
-                              )}
-                            </td>
-
-                            <td className="py-4">
-                              {getDoctorName(
-                                appointment
-                              )}
-                            </td>
-
-                            <td className="py-4">
-                              {appointment.date ||
-                                "N/A"}
-                            </td>
-
-                            <td className="py-4">
-                              {formatAppointmentTime(
-                                appointment.time
-                              )}
-                            </td>
-
-                            <td className="py-4">
-
-                              <span
-                                className={`px-2 py-1 rounded-full text-xs ${getStatusClass(
-                                  appointment.status
-                                )}`}
-                              >
-                                {appointment.status ||
-                                  "Unknown"}
-                              </span>
-
-                            </td>
-
-                          </tr>
-
-                        )
-                      )}
-
-                    </tbody>
-
-                  </table>
-                )}
+                </div>
 
               </div>
 
             </div>
-          </>
+
+            {/* ============================================================
+                TICKETS-STYLE SMOOTH ACTIVITY GRAPH
+            ============================================================ */}
+
+            <div className="bg-gray-950 rounded-3xl shadow-xl overflow-hidden border border-lime-500/20">
+
+              <div className="p-5 md:p-6">
+
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+
+                  <div>
+
+                    <p className="text-xs font-semibold uppercase tracking-wider text-lime-400">
+                      HAMS Activity Trend
+                    </p>
+
+                    <h2 className="text-xl md:text-2xl font-bold text-white mt-1">
+                      Appointments Created vs Prescriptions
+                    </h2>
+
+                    <p className="text-sm text-gray-400 mt-1">
+                      Monthly activity from connected backend records
+                    </p>
+
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-4 text-xs">
+
+                    <div className="flex items-center gap-2 text-gray-300">
+                      <span className="w-7 h-0.5 bg-lime-400 rounded-full" />
+                      Appointments
+                    </div>
+
+                    <div className="flex items-center gap-2 text-gray-300">
+                      <span className="w-7 border-t-2 border-dashed border-lime-700" />
+                      Prescriptions
+                    </div>
+
+                  </div>
+
+                </div>
+
+                <div className="h-[360px] mt-5">
+
+                  <ResponsiveContainer
+                    width="100%"
+                    height="100%"
+                  >
+
+                    <LineChart
+                      data={
+                        monthlyActivityData
+                      }
+                      margin={{
+                        top: 15,
+                        right: 20,
+                        left: 0,
+                        bottom: 5
+                      }}
+                    >
+
+                      <CartesianGrid
+                        stroke="#273244"
+                        strokeDasharray="3 3"
+                        vertical={false}
+                      />
+
+                      <XAxis
+                        dataKey="month"
+                        tick={{
+                          fill: "#9ca3af",
+                          fontSize: 12
+                        }}
+                        axisLine={{
+                          stroke: "#374151"
+                        }}
+                        tickLine={false}
+                      />
+
+                      <YAxis
+                        tick={{
+                          fill: "#9ca3af",
+                          fontSize: 12
+                        }}
+                        axisLine={false}
+                        tickLine={false}
+                        allowDecimals={false}
+                      />
+
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor:
+                            "#111827",
+                          border:
+                            "1px solid #84cc16",
+                          borderRadius:
+                            "12px",
+                          color: "#fff"
+                        }}
+                      />
+
+                      <Line
+                        type="monotone"
+                        dataKey="appointments"
+                        name="Appointments"
+                        stroke="#a3e635"
+                        strokeWidth={3}
+                        dot={false}
+                        activeDot={{
+                          r: 6,
+                          fill: "#84cc16",
+                          stroke:
+                            "#ecfccb",
+                          strokeWidth: 3
+                        }}
+                      />
+
+                      <Line
+                        type="monotone"
+                        dataKey="prescriptions"
+                        name="Prescriptions"
+                        stroke="#65a30d"
+                        strokeWidth={2}
+                        strokeDasharray="5 5"
+                        dot={false}
+                      />
+
+                    </LineChart>
+
+                  </ResponsiveContainer>
+
+                </div>
+
+              </div>
+
+            </div>
+
+            {/* ============================================================
+                MOUNTAIN / RANGE AREA GRAPH
+            ============================================================ */}
+
+            <div className="bg-white rounded-3xl border border-gray-200 shadow-sm overflow-hidden">
+
+              <div className="p-5 md:p-6">
+
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+
+                  <div>
+
+                    <p className="text-xs font-semibold uppercase tracking-wider text-lime-600">
+                      Operational Range
+                    </p>
+
+                    <h2 className="text-xl font-bold text-gray-800 mt-1">
+                      HAMS Activity Range
+                    </h2>
+
+                    <p className="text-sm text-gray-500 mt-1">
+                      Mountain-style area visualization of operational activity
+                    </p>
+
+                  </div>
+
+                  <div className="inline-flex items-center gap-2 rounded-xl bg-lime-50 border border-lime-100 px-3 py-2 text-xs font-semibold text-lime-700">
+
+                    <Activity size={14} />
+
+                    Live backend data
+
+                  </div>
+
+                </div>
+
+                <div className="h-[330px] mt-5">
+
+                  <ResponsiveContainer
+                    width="100%"
+                    height="100%"
+                  >
+
+                    <AreaChart
+                      data={
+                        activityRangeData
+                      }
+                      margin={{
+                        top: 15,
+                        right: 15,
+                        left: 0,
+                        bottom: 5
+                      }}
+                    >
+
+                      <defs>
+
+                        <linearGradient
+                          id={
+                            limeGradientId
+                          }
+                          x1="0"
+                          y1="0"
+                          x2="0"
+                          y2="1"
+                        >
+
+                          <stop
+                            offset="0%"
+                            stopColor="#84cc16"
+                            stopOpacity={0.55}
+                          />
+
+                          <stop
+                            offset="100%"
+                            stopColor="#84cc16"
+                            stopOpacity={0.04}
+                          />
+
+                        </linearGradient>
+
+                        <linearGradient
+                          id={
+                            limeGradientDarkId
+                          }
+                          x1="0"
+                          y1="0"
+                          x2="0"
+                          y2="1"
+                        >
+
+                          <stop
+                            offset="0%"
+                            stopColor="#65a30d"
+                            stopOpacity={0.35}
+                          />
+
+                          <stop
+                            offset="100%"
+                            stopColor="#65a30d"
+                            stopOpacity={0.02}
+                          />
+
+                        </linearGradient>
+
+                      </defs>
+
+                      <CartesianGrid
+                        stroke={chartGridColor}
+                        strokeDasharray="3 3"
+                        vertical={false}
+                      />
+
+                      <XAxis
+                        dataKey="month"
+                        tick={{
+                          fill: "#6b7280",
+                          fontSize: 12
+                        }}
+                        axisLine={false}
+                        tickLine={false}
+                      />
+
+                      <YAxis
+                        tick={{
+                          fill: "#6b7280",
+                          fontSize: 12
+                        }}
+                        axisLine={false}
+                        tickLine={false}
+                        allowDecimals={false}
+                      />
+
+                      <Tooltip
+                        contentStyle={
+                          chartTooltipStyle
+                        }
+                      />
+
+                      <Area
+                        type="monotone"
+                        dataKey="upper"
+                        name="Upper Activity Range"
+                        stroke="#65a30d"
+                        fill={`url(#${limeGradientDarkId})`}
+                        strokeWidth={2}
+                      />
+
+                      <Area
+                        type="monotone"
+                        dataKey="activity"
+                        name="Current Activity"
+                        stroke="#84cc16"
+                        fill={`url(#${limeGradientId})`}
+                        strokeWidth={3}
+                      />
+
+                      <Area
+                        type="monotone"
+                        dataKey="lower"
+                        name="Lower Activity Range"
+                        stroke="#a3e635"
+                        fill="transparent"
+                        strokeWidth={2}
+                        strokeDasharray="6 5"
+                      />
+
+                    </AreaChart>
+
+                  </ResponsiveContainer>
+
+                </div>
+
+              </div>
+
+            </div>
+
+            {/* ============================================================
+                SYSTEM MODULE BAR CHART + DOCTOR HISTOGRAM
+            ============================================================ */}
+
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+
+              {/* System Module Bar Chart */}
+
+              <div className="bg-white rounded-3xl border border-gray-200 shadow-sm overflow-hidden">
+
+                <div className="p-5 md:p-6">
+
+                  <div className="flex items-center justify-between mb-5">
+
+                    <div>
+
+                      <p className="text-xs font-semibold uppercase tracking-wider text-lime-600">
+                        System Coverage
+                      </p>
+
+                      <h2 className="text-xl font-bold text-gray-800 mt-1">
+                        Records By Module
+                      </h2>
+
+                    </div>
+
+                    <div className="w-10 h-10 rounded-xl bg-lime-50 flex items-center justify-center text-lime-600">
+                      <ClipboardList size={20} />
+                    </div>
+
+                  </div>
+
+                  <div className="h-[350px]">
+
+                    <ResponsiveContainer
+                      width="100%"
+                      height="100%"
+                    >
+
+                      <BarChart
+                        data={
+                          systemModuleData
+                        }
+                        margin={{
+                          top: 10,
+                          right: 10,
+                          left: -10,
+                          bottom: 45
+                        }}
+                      >
+
+                        <CartesianGrid
+                          stroke="#e5e7eb"
+                          strokeDasharray="3 3"
+                          vertical={false}
+                        />
+
+                        <XAxis
+                          dataKey="module"
+                          angle={-25}
+                          textAnchor="end"
+                          interval={0}
+                          tick={{
+                            fill: "#6b7280",
+                            fontSize: 11
+                          }}
+                          axisLine={false}
+                          tickLine={false}
+                        />
+
+                        <YAxis
+                          allowDecimals={false}
+                          tick={{
+                            fill: "#6b7280",
+                            fontSize: 11
+                          }}
+                          axisLine={false}
+                          tickLine={false}
+                        />
+
+                        <Tooltip
+                          contentStyle={
+                            chartTooltipStyle
+                          }
+                        />
+
+                        <Bar
+                          dataKey="records"
+                          name="Records"
+                          fill="#84cc16"
+                          radius={[
+                            8,
+                            8,
+                            0,
+                            0
+                          ]}
+                          maxBarSize={42}
+                        />
+
+                      </BarChart>
+
+                    </ResponsiveContainer>
+
+                  </div>
+
+                </div>
+
+              </div>
+
+              {/* Doctor Workload Histogram */}
+
+              <div className="bg-white rounded-3xl border border-gray-200 shadow-sm overflow-hidden">
+
+                <div className="p-5 md:p-6">
+
+                  <div className="flex items-center justify-between mb-5">
+
+                    <div>
+
+                      <p className="text-xs font-semibold uppercase tracking-wider text-lime-600">
+                        Clinical Operations
+                      </p>
+
+                      <h2 className="text-xl font-bold text-gray-800 mt-1">
+                        Doctor Workload
+                      </h2>
+
+                    </div>
+
+                    <div className="w-10 h-10 rounded-xl bg-lime-50 flex items-center justify-center text-lime-600">
+                      <Stethoscope size={20} />
+                    </div>
+
+                  </div>
+
+                  <div className="h-[350px]">
+
+                    {doctorWorkloadData.length === 0 ? (
+
+                      <div className="h-full flex items-center justify-center text-gray-400 text-sm">
+                        No doctor workload data available.
+                      </div>
+
+                    ) : (
+
+                      <ResponsiveContainer
+                        width="100%"
+                        height="100%"
+                      >
+
+                        <BarChart
+                          data={
+                            doctorWorkloadData
+                          }
+                          layout="vertical"
+                          margin={{
+                            top: 10,
+                            right: 15,
+                            left: 15,
+                            bottom: 10
+                          }}
+                        >
+
+                          <CartesianGrid
+                            stroke="#e5e7eb"
+                            strokeDasharray="3 3"
+                            horizontal={false}
+                          />
+
+                          <XAxis
+                            type="number"
+                            allowDecimals={false}
+                            tick={{
+                              fill: "#6b7280",
+                              fontSize: 11
+                            }}
+                            axisLine={false}
+                            tickLine={false}
+                          />
+
+                          <YAxis
+                            type="category"
+                            dataKey="doctor"
+                            width={90}
+                            tick={{
+                              fill: "#4b5563",
+                              fontSize: 11
+                            }}
+                            axisLine={false}
+                            tickLine={false}
+                          />
+
+                          <Tooltip
+                            contentStyle={
+                              chartTooltipStyle
+                            }
+                          />
+
+                          <Bar
+                            dataKey="appointments"
+                            name="Appointments"
+                            fill="#84cc16"
+                            radius={[
+                              0,
+                              8,
+                              8,
+                              0
+                            ]}
+                            maxBarSize={22}
+                          />
+
+                          <Bar
+                            dataKey="prescriptions"
+                            name="Prescriptions"
+                            fill="#bef264"
+                            radius={[
+                              0,
+                              8,
+                              8,
+                              0
+                            ]}
+                            maxBarSize={22}
+                          />
+
+                        </BarChart>
+
+                      </ResponsiveContainer>
+
+                    )}
+
+                  </div>
+
+                </div>
+
+              </div>
+
+            </div>
+
+            {/* ============================================================
+                PRESCRIPTION HISTOGRAM + NOTIFICATION ANALYTICS
+            ============================================================ */}
+
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+
+              {/* Prescription Histogram */}
+
+              <div className="bg-white rounded-3xl border border-gray-200 shadow-sm overflow-hidden">
+
+                <div className="p-5 md:p-6">
+
+                  <div className="flex items-center justify-between mb-5">
+
+                    <div>
+
+                      <p className="text-xs font-semibold uppercase tracking-wider text-lime-600">
+                        Prescription Analytics
+                      </p>
+
+                      <h2 className="text-xl font-bold text-gray-800 mt-1">
+                        Prescription Status
+                      </h2>
+
+                    </div>
+
+                    <div className="w-10 h-10 rounded-xl bg-lime-50 flex items-center justify-center text-lime-600">
+                      <FileText size={20} />
+                    </div>
+
+                  </div>
+
+                  <div className="h-[310px]">
+
+                    <ResponsiveContainer
+                      width="100%"
+                      height="100%"
+                    >
+
+                      <BarChart
+                        data={
+                          prescriptionStatusData
+                        }
+                        margin={{
+                          top: 10,
+                          right: 10,
+                          left: 0,
+                          bottom: 10
+                        }}
+                      >
+
+                        <CartesianGrid
+                          stroke="#e5e7eb"
+                          strokeDasharray="3 3"
+                          vertical={false}
+                        />
+
+                        <XAxis
+                          dataKey="status"
+                          tick={{
+                            fill: "#6b7280",
+                            fontSize: 11
+                          }}
+                          axisLine={false}
+                          tickLine={false}
+                        />
+
+                        <YAxis
+                          allowDecimals={false}
+                          tick={{
+                            fill: "#6b7280",
+                            fontSize: 11
+                          }}
+                          axisLine={false}
+                          tickLine={false}
+                        />
+
+                        <Tooltip
+                          contentStyle={
+                            chartTooltipStyle
+                          }
+                        />
+
+                        <Bar
+                          dataKey="prescriptions"
+                          name="Prescriptions"
+                          fill="#84cc16"
+                          radius={[
+                            8,
+                            8,
+                            0,
+                            0
+                          ]}
+                          maxBarSize={55}
+                        />
+
+                      </BarChart>
+
+                    </ResponsiveContainer>
+
+                  </div>
+
+                </div>
+
+              </div>
+
+              {/* Notification Analytics */}
+
+              <div className="bg-white rounded-3xl border border-gray-200 shadow-sm overflow-hidden">
+
+                <div className="p-5 md:p-6">
+
+                  <div className="flex items-center justify-between mb-5">
+
+                    <div>
+
+                      <p className="text-xs font-semibold uppercase tracking-wider text-lime-600">
+                        Notification Center
+                      </p>
+
+                      <h2 className="text-xl font-bold text-gray-800 mt-1">
+                        Notification Overview
+                      </h2>
+
+                    </div>
+
+                    <div className="w-10 h-10 rounded-xl bg-lime-50 flex items-center justify-center text-lime-600">
+                      <Bell size={20} />
+                    </div>
+
+                  </div>
+
+                  <div className="space-y-4">
+
+                    <div className="rounded-2xl bg-lime-50 border border-lime-100 p-4">
+
+                      <div className="flex items-center justify-between">
+
+                        <div className="flex items-center gap-3">
+
+                          <div className="w-10 h-10 rounded-xl bg-lime-100 flex items-center justify-center text-lime-700">
+                            <Stethoscope size={18} />
+                          </div>
+
+                          <div>
+                            <p className="font-semibold text-gray-800">
+                              Doctor Notifications
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              Alerts sent to doctors
+                            </p>
+                          </div>
+
+                        </div>
+
+                        <p className="text-2xl font-bold text-lime-700">
+                          {
+                            notificationData.doctorNotifications
+                          }
+                        </p>
+
+                      </div>
+
+                    </div>
+
+                    <div className="rounded-2xl bg-lime-50 border border-lime-100 p-4">
+
+                      <div className="flex items-center justify-between">
+
+                        <div className="flex items-center gap-3">
+
+                          <div className="w-10 h-10 rounded-xl bg-lime-100 flex items-center justify-center text-lime-700">
+                            <Users size={18} />
+                          </div>
+
+                          <div>
+                            <p className="font-semibold text-gray-800">
+                              Patient Notifications
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              Alerts sent to patients
+                            </p>
+                          </div>
+
+                        </div>
+
+                        <p className="text-2xl font-bold text-lime-700">
+                          {
+                            notificationData.patientNotifications
+                          }
+                        </p>
+
+                      </div>
+
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+
+                      <div className="rounded-2xl bg-gray-50 border border-gray-100 p-4">
+
+                        <div className="flex items-center gap-2">
+
+                          <Bell
+                            size={17}
+                            className="text-lime-600"
+                          />
+
+                          <p className="text-xs font-semibold text-gray-500">
+                            Unread
+                          </p>
+
+                        </div>
+
+                        <p className="text-2xl font-bold text-gray-800 mt-2">
+                          {
+                            notificationData.unreadNotifications
+                          }
+                        </p>
+
+                      </div>
+
+                      <div className="rounded-2xl bg-gray-50 border border-gray-100 p-4">
+
+                        <div className="flex items-center gap-2">
+
+                          <CheckCircle2
+                            size={17}
+                            className="text-lime-600"
+                          />
+
+                          <p className="text-xs font-semibold text-gray-500">
+                            Read
+                          </p>
+
+                        </div>
+
+                        <p className="text-2xl font-bold text-gray-800 mt-2">
+                          {
+                            notificationData.readNotifications
+                          }
+                        </p>
+
+                      </div>
+
+                    </div>
+
+                  </div>
+
+                </div>
+
+              </div>
+
+            </div>
+
+            {/* ============================================================
+                CLINICAL / FINANCIAL RANGE
+            ============================================================ */}
+
+            <div className="bg-gray-950 rounded-3xl shadow-xl overflow-hidden border border-lime-500/20">
+
+              <div className="p-5 md:p-6">
+
+                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+
+                  <div>
+
+                    <p className="text-xs font-semibold uppercase tracking-wider text-lime-400">
+                      Clinical Activity
+                    </p>
+
+                    <h2 className="text-xl md:text-2xl font-bold text-white mt-1">
+                      Multi-Service Activity Graph
+                    </h2>
+
+                    <p className="text-sm text-gray-400 mt-1">
+                      Appointments, prescriptions, laboratory reports and medical records
+                    </p>
+
+                  </div>
+
+                  <div className="flex flex-wrap gap-3 text-xs text-gray-300">
+
+                    <span className="inline-flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-lime-300" />
+                      Appointments
+                    </span>
+
+                    <span className="inline-flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-lime-500" />
+                      Prescriptions
+                    </span>
+
+                    <span className="inline-flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-lime-700" />
+                      Lab Reports
+                    </span>
+
+                  </div>
+
+                </div>
+
+                <div className="h-[350px] mt-5">
+
+                  <ResponsiveContainer
+                    width="100%"
+                    height="100%"
+                  >
+
+                    <LineChart
+                      data={
+                        monthlyActivityData
+                      }
+                      margin={{
+                        top: 10,
+                        right: 15,
+                        left: 0,
+                        bottom: 5
+                      }}
+                    >
+
+                      <CartesianGrid
+                        stroke="#273244"
+                        strokeDasharray="3 3"
+                        vertical={false}
+                      />
+
+                      <XAxis
+                        dataKey="month"
+                        tick={{
+                          fill: "#9ca3af",
+                          fontSize: 12
+                        }}
+                        axisLine={{
+                          stroke: "#374151"
+                        }}
+                        tickLine={false}
+                      />
+
+                      <YAxis
+                        allowDecimals={false}
+                        tick={{
+                          fill: "#9ca3af",
+                          fontSize: 12
+                        }}
+                        axisLine={false}
+                        tickLine={false}
+                      />
+
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor:
+                            "#111827",
+                          border:
+                            "1px solid #84cc16",
+                          borderRadius:
+                            "12px"
+                        }}
+                      />
+
+                      <ReferenceLine
+                        y={0}
+                        stroke="#374151"
+                      />
+
+                      <Line
+                        type="monotone"
+                        dataKey="appointments"
+                        name="Appointments"
+                        stroke="#bef264"
+                        strokeWidth={3}
+                        dot={false}
+                      />
+
+                      <Line
+                        type="monotone"
+                        dataKey="prescriptions"
+                        name="Prescriptions"
+                        stroke="#84cc16"
+                        strokeWidth={2}
+                        dot={false}
+                      />
+
+                      <Line
+                        type="monotone"
+                        dataKey="labReports"
+                        name="Laboratory Reports"
+                        stroke="#65a30d"
+                        strokeWidth={2}
+                        dot={false}
+                      />
+
+                      <Line
+                        type="monotone"
+                        dataKey="medicalRecords"
+                        name="Medical Records"
+                        stroke="#4d7c0f"
+                        strokeWidth={2}
+                        dot={false}
+                      />
+
+                    </LineChart>
+
+                  </ResponsiveContainer>
+
+                </div>
+
+              </div>
+
+            </div>
+
+            {/* ============================================================
+                BILLING FINANCIAL SUMMARY
+            ============================================================ */}
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+              <div className="bg-white rounded-3xl border border-lime-100 shadow-sm p-5">
+
+                <div className="flex items-center justify-between">
+
+                  <div>
+
+                    <p className="text-sm text-gray-500">
+                      Total Billing Value
+                    </p>
+
+                    <p className="text-2xl font-bold text-gray-800 mt-2">
+                      {formatCurrency(
+                        billingStats.totalBillingAmount
+                      )}
+                    </p>
+
+                  </div>
+
+                  <div className="w-12 h-12 rounded-2xl bg-lime-50 flex items-center justify-center text-lime-600">
+                    <CircleDollarSign size={23} />
+                  </div>
+
+                </div>
+
+                <div className="mt-5 h-2 rounded-full bg-gray-100 overflow-hidden">
+
+                  <div
+                    className="h-full rounded-full bg-lime-500"
+                    style={{
+                      width:
+                        billingStats.totalBillingAmount > 0
+                          ? `${Math.min(
+                              100,
+                              (
+                                billingStats.paidAmount /
+                                billingStats.totalBillingAmount
+                              ) * 100
+                            )}%`
+                          : "0%"
+                    }}
+                  />
+
+                </div>
+
+                <p className="text-xs text-gray-400 mt-2">
+                  Paid amount against total billing value
+                </p>
+
+              </div>
+
+              <div className="bg-white rounded-3xl border border-lime-100 shadow-sm p-5">
+
+                <div className="flex items-center justify-between">
+
+                  <div>
+
+                    <p className="text-sm text-gray-500">
+                      Paid Amount
+                    </p>
+
+                    <p className="text-2xl font-bold text-lime-700 mt-2">
+                      {formatCurrency(
+                        billingStats.paidAmount
+                      )}
+                    </p>
+
+                  </div>
+
+                  <div className="w-12 h-12 rounded-2xl bg-lime-50 flex items-center justify-center text-lime-600">
+                    <MdPayment className="text-2xl" />
+                  </div>
+
+                </div>
+
+                <p className="text-xs text-gray-400 mt-5">
+                  {billingStats.paidBills} fully paid bill(s)
+                </p>
+
+              </div>
+
+              <div className="bg-white rounded-3xl border border-red-100 shadow-sm p-5">
+
+                <div className="flex items-center justify-between">
+
+                  <div>
+
+                    <p className="text-sm text-gray-500">
+                      Outstanding Due
+                    </p>
+
+                    <p className="text-2xl font-bold text-red-600 mt-2">
+                      {formatCurrency(
+                        billingStats.dueAmount
+                      )}
+                    </p>
+
+                  </div>
+
+                  <div className="w-12 h-12 rounded-2xl bg-lime-50 flex items-center justify-center text-red-600">
+                    <MdAttachMoney className="text-2xl" />
+                  </div>
+
+                </div>
+
+                <p className="text-xs text-gray-400 mt-5">
+                  Pending and outstanding payments
+                </p>
+
+              </div>
+
+            </div>
+
+            {/* ============================================================
+                RECENT ACTIVITY + RECENT APPOINTMENTS
+            ============================================================ */}
+
+            <div className="grid grid-cols-1 xl:grid-cols-5 gap-6">
+
+              {/* Recent Activity */}
+
+              <div className="xl:col-span-2 bg-white rounded-3xl border border-gray-200 shadow-sm overflow-hidden">
+
+                <div className="p-5 border-b border-gray-100">
+
+                  <div className="flex items-center justify-between">
+
+                    <div>
+
+                      <h3 className="text-lg font-bold text-gray-800">
+                        Recent Activity
+                      </h3>
+
+                      <p className="text-xs text-gray-500 mt-1">
+                        Latest system events
+                      </p>
+
+                    </div>
+
+                    <Activity
+                      size={20}
+                      className="text-lime-600"
+                    />
+
+                  </div>
+
+                </div>
+
+                <div className="p-5 space-y-4">
+
+                  {dashboardActivity.length === 0 ? (
+
+                    <div className="py-8 text-center text-gray-400 text-sm">
+                      No recent activity available.
+                    </div>
+
+                  ) : (
+
+                    dashboardActivity.map(
+                      (activity, index) => {
+
+                        const ActivityIcon =
+                          activity.icon;
+
+                        return (
+
+                          <div
+                            key={`${activity.type}-${index}`}
+                            className="flex gap-3"
+                          >
+
+                            <div className="w-10 h-10 rounded-xl bg-lime-50 text-lime-600 flex items-center justify-center shrink-0">
+                              <ActivityIcon
+                                size={18}
+                              />
+                            </div>
+
+                            <div className="min-w-0">
+
+                              <p className="font-semibold text-sm text-gray-800 truncate">
+                                {activity.title}
+                              </p>
+
+                              <p className="text-xs text-gray-500 mt-1 line-clamp-2">
+                                {activity.detail}
+                              </p>
+
+                              <p className="text-[11px] text-gray-400 mt-1">
+                                {activity.date}
+                              </p>
+
+                            </div>
+
+                          </div>
+
+                        );
+                      }
+                    )
+
+                  )}
+
+                </div>
+
+              </div>
+
+              {/* Recent Appointments */}
+
+              <div className="xl:col-span-3 bg-white rounded-3xl border border-gray-200 shadow-sm overflow-hidden">
+
+                <div className="p-5 md:p-6 border-b border-gray-100">
+
+                  <div className="flex justify-between items-center">
+
+                    <div>
+
+                      <h3 className="text-lg font-semibold text-gray-800">
+                        Recent Appointments
+                      </h3>
+
+                      <p className="text-sm text-gray-500 mt-1">
+                        Latest appointments from the backend
+                      </p>
+
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={
+                        loadDashboardData
+                      }
+                      disabled={loading}
+                      className="inline-flex items-center gap-2 text-lime-600 hover:text-lime-700 font-medium disabled:opacity-50"
+                    >
+
+                      <RefreshCw
+                        size={15}
+                        className={
+                          loading
+                            ? "animate-spin"
+                            : ""
+                        }
+                      />
+
+                      {loading
+                        ? "Refreshing..."
+                        : "Refresh"}
+
+                    </button>
+
+                  </div>
+
+                </div>
+
+                <div className="overflow-x-auto">
+
+                  {loading ? (
+
+                    <div className="py-10 text-center text-gray-500">
+                      Loading appointments...
+                    </div>
+
+                  ) : recentAppointments.length === 0 ? (
+
+                    <div className="py-10 text-center">
+
+                      <MdCalendarToday className="text-4xl text-gray-300 mx-auto" />
+
+                      <p className="text-gray-500 mt-3">
+                        No appointments found.
+                      </p>
+
+                    </div>
+
+                  ) : (
+
+                    <table className="w-full">
+
+                      <thead>
+
+                        <tr className="text-left text-gray-500 border-b bg-gray-50/70">
+
+                          <th className="px-5 py-3 text-xs uppercase tracking-wider">
+                            Patient
+                          </th>
+
+                          <th className="px-5 py-3 text-xs uppercase tracking-wider">
+                            Doctor
+                          </th>
+
+                          <th className="px-5 py-3 text-xs uppercase tracking-wider">
+                            Date
+                          </th>
+
+                          <th className="px-5 py-3 text-xs uppercase tracking-wider">
+                            Time
+                          </th>
+
+                          <th className="px-5 py-3 text-xs uppercase tracking-wider">
+                            Status
+                          </th>
+
+                        </tr>
+
+                      </thead>
+
+                      <tbody>
+
+                        {recentAppointments.map(
+                          (appointment) => (
+
+                            <tr
+                              key={
+                                appointment.id
+                              }
+                              className="border-b border-gray-100 hover:bg-lime-50/30 transition"
+                            >
+
+                              <td className="px-5 py-4 text-sm font-medium text-gray-800">
+
+                                {getPatientName(
+                                  appointment
+                                )}
+
+                              </td>
+
+                              <td className="px-5 py-4 text-sm text-gray-600">
+
+                                {getDoctorName(
+                                  appointment
+                                )}
+
+                              </td>
+
+                              <td className="px-5 py-4 text-sm text-gray-600">
+
+                                {appointment.date ||
+                                  "N/A"}
+
+                              </td>
+
+                              <td className="px-5 py-4 text-sm text-gray-600">
+
+                                {formatAppointmentTime(
+                                  appointment.time
+                                )}
+
+                              </td>
+
+                              <td className="px-5 py-4">
+
+                                <span
+                                  className={`px-2.5 py-1 rounded-full text-xs font-semibold ${getStatusClass(
+                                    appointment.status
+                                  )}`}
+                                >
+
+                                  {appointment.status ||
+                                    "Unknown"}
+
+                                </span>
+
+                              </td>
+
+                            </tr>
+
+                          )
+                        )}
+
+                      </tbody>
+
+                    </table>
+
+                  )}
+
+                </div>
+
+              </div>
+
+            </div>
+
+          </div>
         );
 
       case "doctor-management":
