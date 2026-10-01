@@ -524,10 +524,11 @@ const Dashboard = () => {
   ============================================================ */
 
   const chartTooltipStyle = {
-    backgroundColor: "#111827",
-    border: "1px solid #84cc16",
-    borderRadius: "10px",
-    color: "#ffffff"
+    backgroundColor: "#ffffff",
+    border: "1px solid #bef264",
+    borderRadius: "12px",
+    color: "#1f2937",
+    boxShadow: "0 10px 25px rgba(0, 0, 0, 0.08)"
   };
 
   const chartGridColor = "#e5e7eb";
@@ -561,9 +562,9 @@ const Dashboard = () => {
   }, [appointmentStats]);
 
   const appointmentStatusColors = [
-    "#bef264",
+    "#d9f99d",
     "#84cc16",
-    "#65a30d",
+    "#4d7c0f",
     "#ef4444"
   ];
 
@@ -699,7 +700,7 @@ const Dashboard = () => {
 
   /* ============================================================
      MONTHLY ACTIVITY DATA
-     ============================================================ */
+  ============================================================ */
 
   const monthlyActivityData = useMemo(() => {
     const months = [
@@ -1092,11 +1093,11 @@ const Dashboard = () => {
                 PROFESSIONAL DASHBOARD HEADER
             ============================================================ */}
 
-            <div className="relative overflow-hidden rounded-3xl bg-gray-950 text-white shadow-xl border border-lime-500/20">
+            <div className="relative overflow-hidden rounded-3xl bg-white text-gray-800 shadow-sm border border-lime-200">
 
-              <div className="absolute inset-0 opacity-20">
-                <div className="absolute -right-24 -top-24 h-72 w-72 rounded-full bg-lime-400 blur-3xl" />
-                <div className="absolute -left-20 -bottom-32 h-72 w-72 rounded-full bg-lime-500 blur-3xl" />
+              <div className="absolute inset-0 opacity-30 pointer-events-none">
+                <div className="absolute -right-24 -top-24 h-72 w-72 rounded-full bg-lime-100 blur-3xl" />
+                <div className="absolute -left-20 -bottom-32 h-72 w-72 rounded-full bg-lime-50 blur-3xl" />
               </div>
 
               <div className="relative p-6 md:p-8">
@@ -1105,7 +1106,7 @@ const Dashboard = () => {
 
                   <div>
 
-                    <div className="inline-flex items-center gap-2 rounded-full border border-lime-400/30 bg-lime-400/10 px-3 py-1.5 text-xs font-semibold text-lime-300 mb-4">
+                    <div className="inline-flex items-center gap-2 rounded-full border border-lime-300 bg-lime-50 px-3 py-1.5 text-xs font-semibold text-lime-700 mb-4">
 
                       <Activity size={14} />
 
@@ -1113,16 +1114,16 @@ const Dashboard = () => {
 
                     </div>
 
-                    <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold tracking-tight">
+                    <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold tracking-tight text-gray-800">
 
                       Hospital Management
-                      <span className="text-lime-400">
+                      <span className="text-lime-500">
                         {" "}Overview
                       </span>
 
                     </h1>
 
-                    <p className="text-gray-400 mt-2 max-w-2xl text-sm md:text-base">
+                    <p className="text-gray-500 mt-2 max-w-2xl text-sm md:text-base">
 
                       Real-time operational analytics across
                       patients, doctors, appointments,
@@ -1137,7 +1138,7 @@ const Dashboard = () => {
                     type="button"
                     onClick={loadDashboardData}
                     disabled={loading}
-                    className="inline-flex items-center justify-center gap-2 rounded-xl border border-lime-400/30 bg-lime-400/10 px-5 py-3 text-sm font-semibold text-lime-300 hover:bg-lime-400/20 hover:border-lime-400/60 transition disabled:opacity-50"
+                    className="inline-flex items-center justify-center gap-2 rounded-xl border border-lime-300 bg-lime-50 px-5 py-3 text-sm font-semibold text-lime-700 hover:bg-lime-100 hover:border-lime-400 transition disabled:opacity-50"
                   >
 
                     <RefreshCw
@@ -1163,88 +1164,88 @@ const Dashboard = () => {
 
                 <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-3 mt-8">
 
-                  <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
-                    <p className="text-[11px] text-gray-400">
+                  <div className="rounded-2xl border border-lime-100 bg-gray-50 p-3">
+                    <p className="text-[11px] text-gray-500">
                       Patients
                     </p>
-                    <p className="text-xl font-bold text-lime-300 mt-1">
+                    <p className="text-xl font-bold text-lime-600 mt-1">
                       {loading
                         ? "..."
                         : dashboardOverview.totalPatients}
                     </p>
                   </div>
 
-                  <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
-                    <p className="text-[11px] text-gray-400">
+                  <div className="rounded-2xl border border-lime-100 bg-gray-50 p-3">
+                    <p className="text-[11px] text-gray-500">
                       Doctors
                     </p>
-                    <p className="text-xl font-bold text-lime-300 mt-1">
+                    <p className="text-xl font-bold text-lime-600 mt-1">
                       {loading
                         ? "..."
                         : dashboardOverview.totalDoctors}
                     </p>
                   </div>
 
-                  <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
-                    <p className="text-[11px] text-gray-400">
+                  <div className="rounded-2xl border border-lime-100 bg-gray-50 p-3">
+                    <p className="text-[11px] text-gray-500">
                       Appointments
                     </p>
-                    <p className="text-xl font-bold text-lime-300 mt-1">
+                    <p className="text-xl font-bold text-lime-600 mt-1">
                       {loading
                         ? "..."
                         : dashboardOverview.totalAppointments}
                     </p>
                   </div>
 
-                  <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
-                    <p className="text-[11px] text-gray-400">
+                  <div className="rounded-2xl border border-lime-100 bg-gray-50 p-3">
+                    <p className="text-[11px] text-gray-500">
                       Prescriptions
                     </p>
-                    <p className="text-xl font-bold text-lime-300 mt-1">
+                    <p className="text-xl font-bold text-lime-600 mt-1">
                       {loading
                         ? "..."
                         : dashboardOverview.totalPrescriptions}
                     </p>
                   </div>
 
-                  <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
-                    <p className="text-[11px] text-gray-400">
+                  <div className="rounded-2xl border border-lime-100 bg-gray-50 p-3">
+                    <p className="text-[11px] text-gray-500">
                       Bills
                     </p>
-                    <p className="text-xl font-bold text-lime-300 mt-1">
+                    <p className="text-xl font-bold text-lime-600 mt-1">
                       {loading
                         ? "..."
                         : dashboardOverview.totalBills}
                     </p>
                   </div>
 
-                  <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
-                    <p className="text-[11px] text-gray-400">
+                  <div className="rounded-2xl border border-lime-100 bg-gray-50 p-3">
+                    <p className="text-[11px] text-gray-500">
                       Labs
                     </p>
-                    <p className="text-xl font-bold text-lime-300 mt-1">
+                    <p className="text-xl font-bold text-lime-600 mt-1">
                       {loading
                         ? "..."
                         : dashboardOverview.totalLabReports}
                     </p>
                   </div>
 
-                  <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
-                    <p className="text-[11px] text-gray-400">
+                  <div className="rounded-2xl border border-lime-100 bg-gray-50 p-3">
+                    <p className="text-[11px] text-gray-500">
                       Records
                     </p>
-                    <p className="text-xl font-bold text-lime-300 mt-1">
+                    <p className="text-xl font-bold text-lime-600 mt-1">
                       {loading
                         ? "..."
                         : dashboardOverview.totalMedicalRecords}
                     </p>
                   </div>
 
-                  <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
-                    <p className="text-[11px] text-gray-400">
+                  <div className="rounded-2xl border border-lime-100 bg-gray-50 p-3">
+                    <p className="text-[11px] text-gray-500">
                       Alerts
                     </p>
-                    <p className="text-xl font-bold text-lime-300 mt-1">
+                    <p className="text-xl font-bold text-lime-600 mt-1">
                       {loading
                         ? "..."
                         : dashboardOverview.totalNotifications}
@@ -1313,11 +1314,13 @@ const Dashboard = () => {
                         }
                         cx="42%"
                         cy="50%"
-                        innerRadius={72}
-                        outerRadius={112}
-                        paddingAngle={4}
+                        innerRadius={76}
+                        outerRadius={116}
+                        paddingAngle={5}
+                        cornerRadius={8}
                         dataKey="value"
-                        stroke="none"
+                        stroke="#ffffff"
+                        strokeWidth={3}
                       >
 
                         {appointmentStatusData.map(
@@ -1338,10 +1341,45 @@ const Dashboard = () => {
 
                       </Pie>
 
+                      <text
+                        x="42%"
+                        y="47%"
+                        textAnchor="middle"
+                        dominantBaseline="middle"
+                        className="fill-gray-800"
+                        style={{
+                          fontSize: "28px",
+                          fontWeight: 700
+                        }}
+                      >
+                        {appointmentStats.total}
+                      </text>
+
+                      <text
+                        x="42%"
+                        y="56%"
+                        textAnchor="middle"
+                        dominantBaseline="middle"
+                        className="fill-gray-400"
+                        style={{
+                          fontSize: "11px",
+                          fontWeight: 600
+                        }}
+                      >
+                        Total
+                      </text>
+
                       <Tooltip
                         contentStyle={
                           chartTooltipStyle
                         }
+                        itemStyle={{
+                          color: "#374151"
+                        }}
+                        labelStyle={{
+                          color: "#1f2937",
+                          fontWeight: 600
+                        }}
                       />
 
                       <Legend
@@ -1349,6 +1387,10 @@ const Dashboard = () => {
                         align="right"
                         layout="vertical"
                         iconType="circle"
+                        wrapperStyle={{
+                          fontSize: "12px",
+                          color: "#4b5563"
+                        }}
                       />
 
                     </PieChart>
@@ -1428,11 +1470,13 @@ const Dashboard = () => {
                         }
                         cx="42%"
                         cy="50%"
-                        innerRadius={72}
-                        outerRadius={112}
-                        paddingAngle={4}
+                        innerRadius={76}
+                        outerRadius={116}
+                        paddingAngle={5}
+                        cornerRadius={8}
                         dataKey="value"
-                        stroke="none"
+                        stroke="#ffffff"
+                        strokeWidth={3}
                       >
 
                         {billingStatusData.map(
@@ -1453,10 +1497,45 @@ const Dashboard = () => {
 
                       </Pie>
 
+                      <text
+                        x="42%"
+                        y="47%"
+                        textAnchor="middle"
+                        dominantBaseline="middle"
+                        className="fill-gray-800"
+                        style={{
+                          fontSize: "28px",
+                          fontWeight: 700
+                        }}
+                      >
+                        {billingStats.totalBills}
+                      </text>
+
+                      <text
+                        x="42%"
+                        y="56%"
+                        textAnchor="middle"
+                        dominantBaseline="middle"
+                        className="fill-gray-400"
+                        style={{
+                          fontSize: "11px",
+                          fontWeight: 600
+                        }}
+                      >
+                        Bills
+                      </text>
+
                       <Tooltip
                         contentStyle={
                           chartTooltipStyle
                         }
+                        itemStyle={{
+                          color: "#374151"
+                        }}
+                        labelStyle={{
+                          color: "#1f2937",
+                          fontWeight: 600
+                        }}
                       />
 
                       <Legend
@@ -1464,6 +1543,10 @@ const Dashboard = () => {
                         align="right"
                         layout="vertical"
                         iconType="circle"
+                        wrapperStyle={{
+                          fontSize: "12px",
+                          color: "#4b5563"
+                        }}
                       />
 
                     </PieChart>
@@ -1508,143 +1591,6 @@ const Dashboard = () => {
                     </div>
 
                   </div>
-
-                </div>
-
-              </div>
-
-            </div>
-
-            {/* ============================================================
-                TICKETS-STYLE SMOOTH ACTIVITY GRAPH
-            ============================================================ */}
-
-            <div className="bg-gray-950 rounded-3xl shadow-xl overflow-hidden border border-lime-500/20">
-
-              <div className="p-5 md:p-6">
-
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-
-                  <div>
-
-                    <p className="text-xs font-semibold uppercase tracking-wider text-lime-400">
-                      HAMS Activity Trend
-                    </p>
-
-                    <h2 className="text-xl md:text-2xl font-bold text-white mt-1">
-                      Appointments Created vs Prescriptions
-                    </h2>
-
-                    <p className="text-sm text-gray-400 mt-1">
-                      Monthly activity from connected backend records
-                    </p>
-
-                  </div>
-
-                  <div className="flex flex-wrap items-center gap-4 text-xs">
-
-                    <div className="flex items-center gap-2 text-gray-300">
-                      <span className="w-7 h-0.5 bg-lime-400 rounded-full" />
-                      Appointments
-                    </div>
-
-                    <div className="flex items-center gap-2 text-gray-300">
-                      <span className="w-7 border-t-2 border-dashed border-lime-700" />
-                      Prescriptions
-                    </div>
-
-                  </div>
-
-                </div>
-
-                <div className="h-[360px] mt-5">
-
-                  <ResponsiveContainer
-                    width="100%"
-                    height="100%"
-                  >
-
-                    <LineChart
-                      data={
-                        monthlyActivityData
-                      }
-                      margin={{
-                        top: 15,
-                        right: 20,
-                        left: 0,
-                        bottom: 5
-                      }}
-                    >
-
-                      <CartesianGrid
-                        stroke="#273244"
-                        strokeDasharray="3 3"
-                        vertical={false}
-                      />
-
-                      <XAxis
-                        dataKey="month"
-                        tick={{
-                          fill: "#9ca3af",
-                          fontSize: 12
-                        }}
-                        axisLine={{
-                          stroke: "#374151"
-                        }}
-                        tickLine={false}
-                      />
-
-                      <YAxis
-                        tick={{
-                          fill: "#9ca3af",
-                          fontSize: 12
-                        }}
-                        axisLine={false}
-                        tickLine={false}
-                        allowDecimals={false}
-                      />
-
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor:
-                            "#111827",
-                          border:
-                            "1px solid #84cc16",
-                          borderRadius:
-                            "12px",
-                          color: "#fff"
-                        }}
-                      />
-
-                      <Line
-                        type="monotone"
-                        dataKey="appointments"
-                        name="Appointments"
-                        stroke="#a3e635"
-                        strokeWidth={3}
-                        dot={false}
-                        activeDot={{
-                          r: 6,
-                          fill: "#84cc16",
-                          stroke:
-                            "#ecfccb",
-                          strokeWidth: 3
-                        }}
-                      />
-
-                      <Line
-                        type="monotone"
-                        dataKey="prescriptions"
-                        name="Prescriptions"
-                        stroke="#65a30d"
-                        strokeWidth={2}
-                        strokeDasharray="5 5"
-                        dot={false}
-                      />
-
-                    </LineChart>
-
-                  </ResponsiveContainer>
 
                 </div>
 
@@ -1789,6 +1735,13 @@ const Dashboard = () => {
                         contentStyle={
                           chartTooltipStyle
                         }
+                        itemStyle={{
+                          color: "#374151"
+                        }}
+                        labelStyle={{
+                          color: "#1f2937",
+                          fontWeight: 600
+                        }}
                       />
 
                       <Area
@@ -1913,6 +1866,13 @@ const Dashboard = () => {
                           contentStyle={
                             chartTooltipStyle
                           }
+                          itemStyle={{
+                            color: "#374151"
+                          }}
+                          labelStyle={{
+                            color: "#1f2937",
+                            fontWeight: 600
+                          }}
                         />
 
                         <Bar
@@ -2025,6 +1985,13 @@ const Dashboard = () => {
                             contentStyle={
                               chartTooltipStyle
                             }
+                            itemStyle={{
+                              color: "#374151"
+                            }}
+                            labelStyle={{
+                              color: "#1f2937",
+                              fontWeight: 600
+                            }}
                           />
 
                           <Bar
@@ -2148,6 +2115,13 @@ const Dashboard = () => {
                           contentStyle={
                             chartTooltipStyle
                           }
+                          itemStyle={{
+                            color: "#374151"
+                          }}
+                          labelStyle={{
+                            color: "#1f2937",
+                            fontWeight: 600
+                          }}
                         />
 
                         <Bar
@@ -2325,7 +2299,7 @@ const Dashboard = () => {
                 CLINICAL / FINANCIAL RANGE
             ============================================================ */}
 
-            <div className="bg-gray-950 rounded-3xl shadow-xl overflow-hidden border border-lime-500/20">
+            <div className="bg-white rounded-3xl shadow-sm overflow-hidden border border-gray-200">
 
               <div className="p-5 md:p-6">
 
@@ -2333,21 +2307,21 @@ const Dashboard = () => {
 
                   <div>
 
-                    <p className="text-xs font-semibold uppercase tracking-wider text-lime-400">
+                    <p className="text-xs font-semibold uppercase tracking-wider text-lime-600">
                       Clinical Activity
                     </p>
 
-                    <h2 className="text-xl md:text-2xl font-bold text-white mt-1">
+                    <h2 className="text-xl md:text-2xl font-bold text-gray-800 mt-1">
                       Multi-Service Activity Graph
                     </h2>
 
-                    <p className="text-sm text-gray-400 mt-1">
+                    <p className="text-sm text-gray-500 mt-1">
                       Appointments, prescriptions, laboratory reports and medical records
                     </p>
 
                   </div>
 
-                  <div className="flex flex-wrap gap-3 text-xs text-gray-300">
+                  <div className="flex flex-wrap gap-3 text-xs text-gray-500">
 
                     <span className="inline-flex items-center gap-2">
                       <span className="w-2.5 h-2.5 rounded-full bg-lime-300" />
@@ -2388,7 +2362,7 @@ const Dashboard = () => {
                     >
 
                       <CartesianGrid
-                        stroke="#273244"
+                        stroke="#e5e7eb"
                         strokeDasharray="3 3"
                         vertical={false}
                       />
@@ -2396,11 +2370,11 @@ const Dashboard = () => {
                       <XAxis
                         dataKey="month"
                         tick={{
-                          fill: "#9ca3af",
+                          fill: "#6b7280",
                           fontSize: 12
                         }}
                         axisLine={{
-                          stroke: "#374151"
+                          stroke: "#d1d5db"
                         }}
                         tickLine={false}
                       />
@@ -2408,7 +2382,7 @@ const Dashboard = () => {
                       <YAxis
                         allowDecimals={false}
                         tick={{
-                          fill: "#9ca3af",
+                          fill: "#6b7280",
                           fontSize: 12
                         }}
                         axisLine={false}
@@ -2416,19 +2390,21 @@ const Dashboard = () => {
                       />
 
                       <Tooltip
-                        contentStyle={{
-                          backgroundColor:
-                            "#111827",
-                          border:
-                            "1px solid #84cc16",
-                          borderRadius:
-                            "12px"
+                        contentStyle={
+                          chartTooltipStyle
+                        }
+                        itemStyle={{
+                          color: "#374151"
+                        }}
+                        labelStyle={{
+                          color: "#1f2937",
+                          fontWeight: 600
                         }}
                       />
 
                       <ReferenceLine
                         y={0}
-                        stroke="#374151"
+                        stroke="#d1d5db"
                       />
 
                       <Line
