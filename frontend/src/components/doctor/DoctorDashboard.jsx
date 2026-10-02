@@ -1930,7 +1930,7 @@ const DoctorDashboard = () => {
         <div className="bg-white rounded-3xl border border-gray-200 shadow-sm overflow-hidden">
           <div className="p-5 md:p-6">
 
-            <div className="flex items-center justify-between mb-5">
+            <div className="flex items-center justify-between mb-24">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wider text-lime-600">
                   Clinical Analytics
