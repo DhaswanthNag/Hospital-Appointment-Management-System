@@ -48,7 +48,7 @@ import {
   Legend
 } from "recharts";
 
-// const API_BASE = API_BASE_URL || "[http://localhost:8080/api](http://localhost:8080/api)";
+// const API_BASE = API_BASE_URL || "[[http://localhost:8080/api\](http://localhost:8080/api)](http://localhost:8080/api]\(http://localhost:8080/api\))";
 
 const UserDashboard = () => {
   const { user } = useContext(AuthContext);
@@ -694,12 +694,17 @@ const UserDashboard = () => {
 
   const chartGridColor = "#e5e7eb";
 
+  /*
+   * Lime green appointment status colors
+   * All appointment status segments now use
+   * different shades of the lime-green theme.
+   */
   const appointmentPieColors = [
     "#84cc16",
-    "#22c55e",
-    "#06b6d4",
-    "#ef4444",
-    "#8b5cf6"
+    "#65a30d",
+    "#a3e635",
+    "#4d7c0f",
+    "#bef264"
   ];
 
   const renderDashboard = () => {
@@ -1199,7 +1204,7 @@ const UserDashboard = () => {
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
 
           {/* Appointment Status Pie Chart */}
-          <div className="bg-white rounded-3xl border border-gray-200 shadow-sm overflow-hidden">
+          <div className="bg-white rounded-3xl border border-lime-200 shadow-sm overflow-hidden">
             <div className="p-5 md:p-6">
               <div className="flex items-center justify-between mb-4">
                 <div>
@@ -1212,7 +1217,7 @@ const UserDashboard = () => {
                   </h2>
                 </div>
 
-                <div className="bg-lime-50 p-3 rounded-xl">
+                <div className="bg-lime-100 p-3 rounded-xl">
                   <PieChartIcon className="h-5 w-5 text-lime-600" />
                 </div>
               </div>
@@ -1243,6 +1248,8 @@ const UserDashboard = () => {
                                   appointmentPieColors.length
                               ]
                             }
+                            stroke="#ffffff"
+                            strokeWidth={2}
                           />
                         )
                       )}
@@ -1256,7 +1263,8 @@ const UserDashboard = () => {
                       verticalAlign="bottom"
                       iconType="circle"
                       wrapperStyle={{
-                        fontSize: "12px"
+                        fontSize: "12px",
+                        color: "#4d7c0f"
                       }}
                     />
                   </PieChart>
