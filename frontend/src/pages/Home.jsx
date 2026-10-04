@@ -55,29 +55,32 @@ const MediCare = () => {
         <div className="container mx-auto flex justify-between items-center">
           
           {/* Desktop Navigation */}
-          <div className="hidden md:flex space-x-8 py-3 w-full justify-center items-center">
+          <div className="hidden md:flex space-x-14 py-3 w-full justify-center items-center">
             <a
               href="#services"
               onClick={(e) => handleNavLinkClick(e, 'services')}
-              className="text-gray-700 hover:text-lime-600 transition-colors"
+              className="relative text-lg font-semibold text-gray-700 hover:text-lime-600 transition-colors duration-300 py-2 group"
             >
               Services
+              <span className="absolute left-0 -bottom-1 w-0 h-0.5 bg-lime-600 transition-all duration-300 group-hover:w-full"></span>
             </a>
 
             <a
               href="#features"
               onClick={(e) => handleNavLinkClick(e, 'features')}
-              className="text-gray-700 hover:text-lime-600 transition-colors"
+              className="relative text-lg font-semibold text-gray-700 hover:text-lime-600 transition-colors duration-300 py-2 group"
             >
               Features
+              <span className="absolute left-0 -bottom-1 w-0 h-0.5 bg-lime-600 transition-all duration-300 group-hover:w-full"></span>
             </a>
 
             <a
               href="#contact"
               onClick={(e) => handleNavLinkClick(e, 'contact')}
-              className="text-gray-700 hover:text-lime-600 transition-colors"
+              className="relative text-lg font-semibold text-gray-700 hover:text-lime-600 transition-colors duration-300 py-2 group"
             >
               Contact
+              <span className="absolute left-0 -bottom-1 w-0 h-0.5 bg-lime-600 transition-all duration-300 group-hover:w-full"></span>
             </a>
           </div>
           
@@ -296,7 +299,7 @@ const MediCare = () => {
                   <svg className="w-5 h-5 text-lime-400 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                   </svg>
-                  <span>dhaswanth31@gmail.com</span>
+                  <span>dhaswanth@gmail.com</span>
                 </li>
                 <li className="flex items-start">
                   <svg className="w-5 h-5 text-lime-400 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
