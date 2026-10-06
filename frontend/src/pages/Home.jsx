@@ -133,7 +133,7 @@ const MediCare = () => {
           </div>
         <div className="md:w-1/2 flex justify-center ml-2">
           {/* Increased max-width to max-w-lg and height to h-96 */}
-          <div className="bg-gradient-to-br from-lime-100 to-lime-200 rounded-3xl p-4 w-full max-w-lg h-96 flex items-center justify-center">
+          <div className="bg-gradient-to-br from-lime-100 to-lime-200 dark:!from-gray-700 dark:!to-gray-800 rounded-3xl p-4 w-full max-w-lg h-96 flex items-center justify-center">
             <div className="text-center">
               
               {/* Replaced SVG container with an <img> tag */}
@@ -291,7 +291,7 @@ const MediCare = () => {
               <ul className="space-y-3 text-gray-400">
                 <li className="flex items-start">
                   <svg className="w-5 h-5 text-lime-400 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a2 2 0 012 2v1C21 14.284 14.284 21 6 21h-1a2 2 0 01-2-2V5z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a2.001 2.001 0 011.21-.502l4.493 1.498a2 2 0 012 2v1C21 14.284 14.284 21 6 21h-1a2 2 0 01-2-2V5z" />
                   </svg>
                   <span>+91-8464930415</span>
                 </li>
