@@ -1,5 +1,5 @@
 // src/components/Navbar.jsx
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 // import { Link, useNavigate } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
@@ -8,7 +8,9 @@ import logo from '../assets/logo.png';
 export default function Navbar() {
   const { user: ctxUser, logout } = useContext(AuthContext) || {};
   const [isLogin, setIsLogin] = useState(true);
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    return localStorage.getItem('hams_theme') === 'dark';
+  });
   const navigate = useNavigate();
 
   const handleToggle = (target) => {
@@ -22,10 +24,18 @@ export default function Navbar() {
   };
 
   const toggleDarkMode = () => {
-    setIsDarkMode(!isDarkMode);
-    if (!isDarkMode) document.documentElement.classList.add('dark');
-    else document.documentElement.classList.remove('dark');
+    setIsDarkMode((prevMode) => !prevMode);
   };
+
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('hams_theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('hams_theme', 'light');
+    }
+  }, [isDarkMode]);
 
   // safeUser: use only the current authenticated user from AuthContext
   const safeUser = ctxUser || null;
@@ -46,7 +56,7 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="sticky bg-gradient-to-r from-lime-100 via-lime-300 to-lime-400 shadow-lg fixed w-full top-0 left-0 z-50">
+    <nav className="sticky bg-gradient-to-r from-lime-100 via-lime-300 to-lime-400 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 shadow-lg fixed w-full top-0 left-0 z-50">
       <div className="max-w-screen mx-auto px-0 sm:px-0 lg:px-8 py-3">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center">
@@ -82,6 +92,21 @@ export default function Navbar() {
                   className="bg-white text-emerald-600 hover:bg-green-50 px-4 py-2 rounded-full text-sm font-semibold transition duration-200 shadow-sm"
                 >
                   Logout
+                </button>
+
+                <button
+                  onClick={toggleDarkMode}
+                  className="p-2 rounded-full bg-white/30 backdrop-blur-sm hover:bg-white/40 transition duration-200 shadow-sm"
+                >
+                  {isDarkMode ? (
+                    <svg className="h-5 w-5 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364-.707-.707M6.343 6.343l-.707-.707m12.728 0-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                    </svg>
+                  ) : (
+                    <svg className="h-5 w-5 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9.003 9.003 0 008.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                    </svg>
+                  )}
                 </button>
               </div>
             ) : (
@@ -122,7 +147,7 @@ export default function Navbar() {
                     </svg>
                   ) : (
                     <svg className="h-5 w-5 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9.003 9.003 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9.003 9.003 0 008.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
                     </svg>
                   )}
                 </button>

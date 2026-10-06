@@ -2,5 +2,586 @@
 @tailwind components;
 @tailwind utilities;
 
+body {
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+}
 
-body { font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; }
+/* =========================================================
+   HAMS GLOBAL DARK MODE
+   ========================================================= */
+
+/* Smooth theme transition */
+html,
+body,
+#root {
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
+}
+
+/* =========================================================
+   GLOBAL APPLICATION BACKGROUND
+   ========================================================= */
+
+.dark body {
+  background-color: #0f172a;
+  color: #f8fafc;
+}
+
+.dark #root {
+  background-color: #0f172a;
+  color: #f8fafc;
+}
+
+/* =========================================================
+   COMMON WHITE / GRAY BACKGROUNDS
+   ========================================================= */
+
+.dark .bg-white {
+  background-color: #1e293b !important;
+}
+
+.dark .bg-gray-50 {
+  background-color: #0f172a !important;
+}
+
+.dark .bg-gray-100 {
+  background-color: #1e293b !important;
+}
+
+.dark .bg-gray-200 {
+  background-color: #334155 !important;
+}
+
+.dark .bg-gray-300 {
+  background-color: #475569 !important;
+}
+
+/* =========================================================
+   SLATE BACKGROUNDS
+   ========================================================= */
+
+.dark .bg-slate-50 {
+  background-color: #0f172a !important;
+}
+
+.dark .bg-slate-100 {
+  background-color: #1e293b !important;
+}
+
+.dark .bg-slate-200 {
+  background-color: #334155 !important;
+}
+
+.dark .bg-slate-300 {
+  background-color: #475569 !important;
+}
+
+/* =========================================================
+   ZINC BACKGROUNDS
+   ========================================================= */
+
+.dark .bg-zinc-50 {
+  background-color: #18181b !important;
+}
+
+.dark .bg-zinc-100 {
+  background-color: #27272a !important;
+}
+
+.dark .bg-zinc-200 {
+  background-color: #3f3f46 !important;
+}
+
+/* =========================================================
+   NEUTRAL BACKGROUNDS
+   ========================================================= */
+
+.dark .bg-neutral-50 {
+  background-color: #171717 !important;
+}
+
+.dark .bg-neutral-100 {
+  background-color: #262626 !important;
+}
+
+.dark .bg-neutral-200 {
+  background-color: #404040 !important;
+}
+
+/* =========================================================
+   STONE BACKGROUNDS
+   ========================================================= */
+
+.dark .bg-stone-50 {
+  background-color: #1c1917 !important;
+}
+
+.dark .bg-stone-100 {
+  background-color: #292524 !important;
+}
+
+.dark .bg-stone-200 {
+  background-color: #44403c !important;
+}
+
+/* =========================================================
+   LIME BACKGROUNDS
+   HAMS HOME PAGE USES LIGHT LIME SECTIONS
+   ========================================================= */
+
+.dark .bg-lime-50 {
+  background-color: #111827 !important;
+}
+
+.dark .bg-lime-100 {
+  background-color: #17230f !important;
+}
+
+.dark .bg-lime-200 {
+  background-color: #27351a !important;
+}
+
+/* =========================================================
+   GREEN BACKGROUNDS
+   ========================================================= */
+
+.dark .bg-green-50 {
+  background-color: #0f2417 !important;
+}
+
+.dark .bg-green-100 {
+  background-color: #15301e !important;
+}
+
+.dark .bg-green-200 {
+  background-color: #1f442a !important;
+}
+
+/* =========================================================
+   EMERALD BACKGROUNDS
+   ========================================================= */
+
+.dark .bg-emerald-50 {
+  background-color: #08251d !important;
+}
+
+.dark .bg-emerald-100 {
+  background-color: #0d3529 !important;
+}
+
+.dark .bg-emerald-200 {
+  background-color: #15513d !important;
+}
+
+/* =========================================================
+   BLUE LIGHT BACKGROUNDS
+   ========================================================= */
+
+.dark .bg-blue-50 {
+  background-color: #0f1d32 !important;
+}
+
+.dark .bg-blue-100 {
+  background-color: #172a46 !important;
+}
+
+.dark .bg-blue-200 {
+  background-color: #1e3a5f !important;
+}
+
+/* =========================================================
+   PURPLE LIGHT BACKGROUNDS
+   ========================================================= */
+
+.dark .bg-purple-50 {
+  background-color: #211631 !important;
+}
+
+.dark .bg-purple-100 {
+  background-color: #302047 !important;
+}
+
+.dark .bg-purple-200 {
+  background-color: #422765 !important;
+}
+
+/* =========================================================
+   RED LIGHT BACKGROUNDS
+   ========================================================= */
+
+.dark .bg-red-50 {
+  background-color: #2a1215 !important;
+}
+
+.dark .bg-red-100 {
+  background-color: #40191d !important;
+}
+
+.dark .bg-red-200 {
+  background-color: #5b2329 !important;
+}
+
+/* =========================================================
+   YELLOW LIGHT BACKGROUNDS
+   ========================================================= */
+
+.dark .bg-yellow-50 {
+  background-color: #28230d !important;
+}
+
+.dark .bg-yellow-100 {
+  background-color: #3a3210 !important;
+}
+
+.dark .bg-yellow-200 {
+  background-color: #504614 !important;
+}
+
+/* =========================================================
+   ORANGE LIGHT BACKGROUNDS
+   ========================================================= */
+
+.dark .bg-orange-50 {
+  background-color: #2a1a0f !important;
+}
+
+.dark .bg-orange-100 {
+  background-color: #3b2413 !important;
+}
+
+.dark .bg-orange-200 {
+  background-color: #543419 !important;
+}
+
+/* =========================================================
+   PINK LIGHT BACKGROUNDS
+   ========================================================= */
+
+.dark .bg-pink-50 {
+  background-color: #28121f !important;
+}
+
+.dark .bg-pink-100 {
+  background-color: #3b192d !important;
+}
+
+.dark .bg-pink-200 {
+  background-color: #51213e !important;
+}
+
+/* =========================================================
+   INDIGO LIGHT BACKGROUNDS
+   ========================================================= */
+
+.dark .bg-indigo-50 {
+  background-color: #11152e !important;
+}
+
+.dark .bg-indigo-100 {
+  background-color: #191f45 !important;
+}
+
+.dark .bg-indigo-200 {
+  background-color: #252e61 !important;
+}
+
+/* =========================================================
+   CYAN LIGHT BACKGROUNDS
+   ========================================================= */
+
+.dark .bg-cyan-50 {
+  background-color: #0b2229 !important;
+}
+
+.dark .bg-cyan-100 {
+  background-color: #10333d !important;
+}
+
+.dark .bg-cyan-200 {
+  background-color: #164753 !important;
+}
+
+/* =========================================================
+   TRANSPARENT WHITE BACKGROUNDS
+   ========================================================= */
+
+.dark .bg-white\/5 {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+.dark .bg-white\/10 {
+  background-color: rgba(255, 255, 255, 0.07) !important;
+}
+
+.dark .bg-white\/20 {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.dark .bg-white\/30 {
+  background-color: rgba(255, 255, 255, 0.10) !important;
+}
+
+.dark .bg-white\/40 {
+  background-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+.dark .bg-white\/50 {
+  background-color: rgba(255, 255, 255, 0.14) !important;
+}
+
+/* =========================================================
+   TEXT COLORS
+   ========================================================= */
+
+.dark .text-gray-950 {
+  color: #ffffff !important;
+}
+
+.dark .text-gray-900 {
+  color: #f8fafc !important;
+}
+
+.dark .text-gray-800 {
+  color: #f1f5f9 !important;
+}
+
+.dark .text-gray-700 {
+  color: #e2e8f0 !important;
+}
+
+.dark .text-gray-600 {
+  color: #cbd5e1 !important;
+}
+
+.dark .text-gray-500 {
+  color: #94a3b8 !important;
+}
+
+.dark .text-gray-400 {
+  color: #94a3b8 !important;
+}
+
+/* Slate text */
+.dark .text-slate-950 {
+  color: #ffffff !important;
+}
+
+.dark .text-slate-900 {
+  color: #f8fafc !important;
+}
+
+.dark .text-slate-800 {
+  color: #f1f5f9 !important;
+}
+
+.dark .text-slate-700 {
+  color: #e2e8f0 !important;
+}
+
+.dark .text-slate-600 {
+  color: #cbd5e1 !important;
+}
+
+.dark .text-slate-500 {
+  color: #94a3b8 !important;
+}
+
+.dark .text-slate-400 {
+  color: #94a3b8 !important;
+}
+
+/* =========================================================
+   BORDERS
+   ========================================================= */
+
+.dark .border-gray-100 {
+  border-color: #334155 !important;
+}
+
+.dark .border-gray-200 {
+  border-color: #334155 !important;
+}
+
+.dark .border-gray-300 {
+  border-color: #475569 !important;
+}
+
+.dark .border-gray-400 {
+  border-color: #64748b !important;
+}
+
+.dark .border-slate-100 {
+  border-color: #334155 !important;
+}
+
+.dark .border-slate-200 {
+  border-color: #334155 !important;
+}
+
+.dark .border-slate-300 {
+  border-color: #475569 !important;
+}
+
+.dark .border-lime-100 {
+  border-color: #334d1c !important;
+}
+
+.dark .border-lime-200 {
+  border-color: #405d22 !important;
+}
+
+/* =========================================================
+   FORM CONTROLS
+   ========================================================= */
+
+.dark input,
+.dark textarea,
+.dark select {
+  background-color: #1e293b;
+  color: #f8fafc;
+  border-color: #475569;
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: #94a3b8;
+}
+
+.dark option {
+  background-color: #1e293b;
+  color: #f8fafc;
+}
+
+/* =========================================================
+   TABLES
+   ========================================================= */
+
+.dark table {
+  color: #f8fafc;
+}
+
+.dark th {
+  background-color: #1e293b;
+  color: #f8fafc;
+}
+
+.dark td {
+  border-color: #334155;
+}
+
+.dark tbody tr:hover {
+  background-color: #334155;
+}
+
+/* =========================================================
+   COMMON HOVER BACKGROUNDS
+   ========================================================= */
+
+.dark .hover\:bg-gray-50:hover {
+  background-color: #1e293b !important;
+}
+
+.dark .hover\:bg-gray-100:hover {
+  background-color: #334155 !important;
+}
+
+.dark .hover\:bg-gray-200:hover {
+  background-color: #475569 !important;
+}
+
+.dark .hover\:bg-white:hover {
+  background-color: #334155 !important;
+}
+
+/* =========================================================
+   LINKS
+   ========================================================= */
+
+.dark a.text-gray-700 {
+  color: #e2e8f0 !important;
+}
+
+.dark a.text-gray-600 {
+  color: #cbd5e1 !important;
+}
+
+.dark a.text-gray-700:hover,
+.dark a.text-gray-600:hover {
+  color: #84cc16 !important;
+}
+
+/* =========================================================
+   LIGHT GRADIENT VARIABLES
+   Used by Tailwind gradient utilities
+   ========================================================= */
+
+.dark .from-lime-50 {
+  --tw-gradient-from: #111827 var(--tw-gradient-from-position) !important;
+  --tw-gradient-to: rgb(17 24 39 / 0) var(--tw-gradient-to-position) !important;
+}
+
+.dark .from-lime-100 {
+  --tw-gradient-from: #17230f var(--tw-gradient-from-position) !important;
+  --tw-gradient-to: rgb(23 35 15 / 0) var(--tw-gradient-to-position) !important;
+}
+
+.dark .via-lime-50 {
+  --tw-gradient-to: rgb(17 24 39 / 0) var(--tw-gradient-to-position) !important;
+  --tw-gradient-stops: var(--tw-gradient-from), #111827 var(--tw-gradient-via-position), var(--tw-gradient-to) !important;
+}
+
+.dark .via-lime-100 {
+  --tw-gradient-to: rgb(23 35 15 / 0) var(--tw-gradient-to-position) !important;
+  --tw-gradient-stops: var(--tw-gradient-from), #17230f var(--tw-gradient-via-position), var(--tw-gradient-to) !important;
+}
+
+.dark .to-lime-50 {
+  --tw-gradient-to: #111827 var(--tw-gradient-to-position) !important;
+}
+
+.dark .to-lime-100 {
+  --tw-gradient-to: #17230f var(--tw-gradient-to-position) !important;
+}
+
+.dark .from-gray-50 {
+  --tw-gradient-from: #0f172a var(--tw-gradient-from-position) !important;
+}
+
+.dark .to-gray-50 {
+  --tw-gradient-to: #0f172a var(--tw-gradient-to-position) !important;
+}
+
+/* =========================================================
+   COMMON SHADOWS
+   ========================================================= */
+
+.dark .shadow,
+.dark .shadow-sm,
+.dark .shadow-md,
+.dark .shadow-lg,
+.dark .shadow-xl,
+.dark .shadow-2xl {
+  --tw-shadow-color: rgba(0, 0, 0, 0.45);
+}
+
+/* =========================================================
+   SCROLLBAR
+   ========================================================= */
+
+.dark ::-webkit-scrollbar {
+  width: 8px;
+}
+
+.dark ::-webkit-scrollbar-track {
+  background: #0f172a;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #475569;
+  border-radius: 9999px;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
+}
